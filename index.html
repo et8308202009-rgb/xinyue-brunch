@@ -206,12 +206,18 @@
                     <button onclick="switchOwnerTab('stock')" id="owner-tab-stock" class="px-4 py-2 rounded-full text-sm font-medium bg-wine-900 text-cream-200 border border-gold-400/30 hover:bg-wine-800 transition">🍽️ 餐點售完管理 <span id="sold-out-count-badge" class="ml-1 px-1.5 py-0.5 text-[10px] rounded-full bg-rose-600 text-white hidden">0</span></button>
                 </div>
 
-                <!-- 訂單狀態子篩選 -->
-                <div id="owner-order-filters" class="flex items-center gap-2 overflow-x-auto pb-1">
-                    <button onclick="setOwnerFilter('active')" id="filter-active" class="px-3.5 py-1.5 rounded-full text-xs font-bold bg-cream-100 text-wine-950 transition">進行中訂單</button>
-                    <button onclick="setOwnerFilter('completed')" id="filter-completed" class="px-3.5 py-1.5 rounded-full text-xs font-medium bg-wine-900 text-cream-200 border border-gold-400/30 transition">已完成歷史</button>
-                    <button onclick="setOwnerFilter('cancelled')" id="filter-cancelled" class="px-3.5 py-1.5 rounded-full text-xs font-medium bg-wine-900 text-cream-200 border border-gold-400/30 transition">已取消訂單</button>
-                    <button onclick="setOwnerFilter('all')" id="filter-all" class="px-3.5 py-1.5 rounded-full text-xs font-medium bg-wine-900 text-cream-200 border border-gold-400/30 transition">全部訂單</button>
+                <!-- 訂單搜尋與狀態子篩選 -->
+                <div id="owner-order-filters" class="flex flex-wrap items-center gap-2">
+                    <div class="relative">
+                        <input type="text" id="owner-order-search" oninput="handleOwnerOrderSearch()" placeholder="搜尋客人姓名、電話、編號或後五碼..." class="pl-8 pr-3 py-1.5 rounded-full bg-wine-950 border border-gold-400/40 text-xs text-cream-50 placeholder-cream-200/45 focus:outline-none focus:border-gold-400 w-56 sm:w-64">
+                        <svg class="w-3.5 h-3.5 text-gold-400 absolute left-3 top-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                    </div>
+                    <div class="flex items-center gap-1.5 overflow-x-auto pb-1">
+                        <button onclick="setOwnerFilter('active')" id="filter-active" class="px-3.5 py-1.5 rounded-full text-xs font-bold bg-cream-100 text-wine-950 transition whitespace-nowrap">進行中訂單</button>
+                        <button onclick="setOwnerFilter('completed')" id="filter-completed" class="px-3.5 py-1.5 rounded-full text-xs font-medium bg-wine-900 text-cream-200 border border-gold-400/30 transition whitespace-nowrap">已完成歷史</button>
+                        <button onclick="setOwnerFilter('cancelled')" id="filter-cancelled" class="px-3.5 py-1.5 rounded-full text-xs font-medium bg-wine-900 text-cream-200 border border-gold-400/30 transition whitespace-nowrap">已取消訂單</button>
+                        <button onclick="setOwnerFilter('all')" id="filter-all" class="px-3.5 py-1.5 rounded-full text-xs font-medium bg-wine-900 text-cream-200 border border-gold-400/30 transition whitespace-nowrap">全部訂單</button>
+                    </div>
                 </div>
             </div>
 
@@ -496,7 +502,7 @@
             </div>
 
             <!-- 分類導覽標籤 -->
-            <div id="category-tabs" class="flex items-center gap-2.5 overflow-x-auto no-scrollbar pb-4 mb-6">
+            <div id="category-tabs" class="flex md:flex-wrap items-center gap-2.5 overflow-x-auto md:overflow-visible no-scrollbar pb-4 mb-6">
                 <!-- 由 JS 動態生成 -->
             </div>
 
@@ -1987,11 +1993,17 @@
                 const btn = document.getElementById(`filter-${f}`);
                 if (!btn) return;
                 if (f === filter) {
-                    btn.className = 'px-4 py-2 rounded-full text-sm font-bold bg-gold-500 text-wine-950 transition';
+                    btn.className = 'px-3.5 py-1.5 rounded-full text-xs font-bold bg-gold-500 text-wine-950 transition whitespace-nowrap';
                 } else {
-                    btn.className = 'px-4 py-2 rounded-full text-sm font-medium bg-wine-900 text-cream-200 border border-gold-400/30 transition';
+                    btn.className = 'px-3.5 py-1.5 rounded-full text-xs font-medium bg-wine-900 text-cream-200 border border-gold-400/30 transition whitespace-nowrap';
                 }
             });
+            if (window.getCloudOrders) {
+                window.renderOwnerOrders(window.getCloudOrders());
+            }
+        }
+
+        function handleOwnerOrderSearch() {
             if (window.getCloudOrders) {
                 window.renderOwnerOrders(window.getCloudOrders());
             }
@@ -2014,9 +2026,20 @@
             document.getElementById('stat-paid-revenue').textContent = `$${paidRevenue}`;
             document.getElementById('stat-unpaid-revenue').textContent = `$${unpaidRevenue}`;
 
-            // 篩選顯示的訂單
+            const searchKeyword = (document.getElementById('owner-order-search')?.value || '').trim().toLowerCase();
+
+            // 篩選顯示的訂單（若有輸入搜尋關鍵字，則跨所有狀態搜尋該位客人）
             let filtered = orders;
-            if (ownerFilter === 'active') {
+            if (searchKeyword) {
+                filtered = orders.filter(o => {
+                    const matchName = (o.customerName || '').toLowerCase().includes(searchKeyword);
+                    const matchPhone = (o.customerPhone || '').toLowerCase().includes(searchKeyword);
+                    const matchNum = (o.orderNumber || '').toLowerCase().includes(searchKeyword);
+                    const matchTable = (o.tableNumber || '').toLowerCase().includes(searchKeyword);
+                    const matchLast5 = (o.transferLast5 || '').toLowerCase().includes(searchKeyword);
+                    return matchName || matchPhone || matchNum || matchTable || matchLast5;
+                });
+            } else if (ownerFilter === 'active') {
                 filtered = orders.filter(o => o.status === 'pending' || o.status === 'preparing');
             } else if (ownerFilter === 'completed') {
                 filtered = orders.filter(o => o.status === 'completed');
@@ -2028,8 +2051,8 @@
             if (filtered.length === 0) {
                 grid.innerHTML = `
                     <div class="col-span-full text-center py-20 rounded-3xl bg-wine-900/40 border border-gold-400/20">
-                        <p class="font-serif text-xl text-cream-200/80">目前此分類沒有訂單喔 ☕</p>
-                        <p class="text-xs text-cream-200/50 mt-1">當客人從網站送出點餐後，訂單會即時出現在這裡</p>
+                        <p class="font-serif text-xl text-cream-200/80">${searchKeyword ? `找不到符合「${searchKeyword}」的客人或訂單` : '目前此分類沒有訂單喔 ☕'}</p>
+                        <p class="text-xs text-cream-200/50 mt-1">${searchKeyword ? '請嘗試輸入客人姓名、電話、取餐編號或轉帳後五碼' : '當客人從網站送出訂單後，訂單會即時出現在這裡'}</p>
                     </div>
                 `;
                 return;
