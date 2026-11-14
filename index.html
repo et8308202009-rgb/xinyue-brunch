@@ -810,10 +810,34 @@
         </div>
     </div>
 
+    <!-- 老闆刪除訂單二次確認視窗 (防止誤刪) -->
+    <div id="delete-order-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4">
+        <div onclick="closeDeleteOrderModal()" class="absolute inset-0 bg-wine-950/80 backdrop-blur-xs"></div>
+        <div class="relative w-full max-w-sm rounded-3xl bg-[#fffcf7] text-wine-950 p-6 sm:p-7 border-2 border-stone-300 shadow-2xl">
+            <div class="text-center mb-5">
+                <div class="w-12 h-12 rounded-full bg-stone-200 text-stone-700 flex items-center justify-center mx-auto mb-3 text-xl">
+                    🗑️
+                </div>
+                <h3 class="font-serif text-xl font-bold text-wine-900">永久刪除此筆訂單？</h3>
+                <p id="delete-modal-subtitle" class="text-xs text-stone-500 mt-1.5 leading-relaxed">
+                    刪除後將從雲端資料庫移除且無法復原，並同步扣除營業額統計（適合用來清理測試單）
+                </p>
+            </div>
+            <div class="grid grid-cols-2 gap-3">
+                <button type="button" onclick="closeDeleteOrderModal()" class="py-2.5 rounded-xl border border-stone-300 text-stone-600 text-xs font-medium hover:bg-stone-100 transition">
+                    取消保留
+                </button>
+                <button type="button" onclick="confirmDeleteOrder()" class="py-2.5 rounded-xl bg-stone-800 hover:bg-stone-950 text-white text-xs font-bold shadow-md transition">
+                    確認永久刪除
+                </button>
+            </div>
+        </div>
+    </div>
+
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, collection, addDoc, onSnapshot, doc, updateDoc, setDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, onSnapshot, doc, updateDoc, setDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         // =========================================================================
         // 【GitHub 正式上線設定區】
@@ -1188,6 +1212,35 @@
             } catch (error) {
                 console.error("更新收款狀態失敗:", error);
                 window.showToast('收款狀態更新失敗，請重試');
+            }
+        };
+
+        // 老闆永久刪除單筆訂單（清理測試單或過期紀錄）
+        window.deleteOrderFromCloud = async function(orderId) {
+            if (!isFirebaseConfigured || !db || !currentUser) {
+                allCloudOrders = allCloudOrders.filter(o => o.id !== orderId);
+                window.myLocalOrders = (window.myLocalOrders || []).filter(o => o.id !== orderId);
+                try {
+                    localStorage.setItem(SAVED_MOCK_ORDERS_KEY, JSON.stringify(window.myLocalOrders.slice(0, 15)));
+                } catch (e) {}
+                if (window.renderOwnerOrders) window.renderOwnerOrders(allCloudOrders);
+                if (window.refreshCustomerOrdersUI) window.refreshCustomerOrdersUI();
+                window.showToast('🗑️ 已永久刪除此筆訂單');
+                return;
+            }
+
+            try {
+                const orderDoc = doc(db, 'artifacts', appId, 'public', 'data', 'orders', orderId);
+                await deleteDoc(orderDoc);
+                // 同步清理本機記憶中的該筆訂單 ID
+                const ids = getSavedOrderIds().filter(id => id !== orderId);
+                localStorage.setItem(SAVED_IDS_KEY, JSON.stringify(ids));
+                window.myLocalOrders = (window.myLocalOrders || []).filter(o => o.id !== orderId);
+                if (window.refreshCustomerOrdersUI) window.refreshCustomerOrdersUI();
+                window.showToast('🗑️ 已從雲端永久刪除此筆訂單');
+            } catch (error) {
+                console.error("刪除訂單失敗:", error);
+                window.showToast('刪除失敗，請確認 Firebase 規則是否允許 delete 權限');
             }
         };
 
@@ -1942,6 +1995,26 @@
             closeCancelOrderModal();
         }
 
+        // ================= 老闆刪除訂單二次確認視窗控制 =================
+        let pendingDeleteOrderId = null;
+
+        function openDeleteOrderModal(orderId, orderNumber) {
+            pendingDeleteOrderId = orderId;
+            document.getElementById('delete-modal-subtitle').textContent = `確定要永久刪除訂單 #${orderNumber} 嗎？刪除後將從雲端移除且無法復原。`;
+            document.getElementById('delete-order-modal').classList.remove('hidden');
+        }
+
+        function closeDeleteOrderModal() {
+            pendingDeleteOrderId = null;
+            document.getElementById('delete-order-modal').classList.add('hidden');
+        }
+
+        function confirmDeleteOrder() {
+            if (!pendingDeleteOrderId) return;
+            window.deleteOrderFromCloud(pendingDeleteOrderId);
+            closeDeleteOrderModal();
+        }
+
         // ================= 老闆密碼驗證與接單看板邏輯 =================
         function openOwnerLoginModal() {
             if (window.isOwnerLoggedIn) {
@@ -2102,7 +2175,12 @@
                                     <span class="font-serif text-2xl font-black text-wine-900">#${order.orderNumber || '---'}</span>
                                     <span class="text-xs text-stone-500 ml-2">${order.timeString || ''}</span>
                                 </div>
-                                ${badgeHtml}
+                                <div class="flex items-center gap-1.5">
+                                    ${badgeHtml}
+                                    <button onclick="openDeleteOrderModal('${order.id}', '${order.orderNumber}')" title="永久刪除此筆訂單" class="p-1.5 rounded-full text-stone-400 hover:text-rose-600 hover:bg-rose-50 transition">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                                    </button>
+                                </div>
                             </div>
 
                             <!-- 付款與對帳資訊條 -->

@@ -4,12 +4,12 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // 訂單：建立、讀取、更新狀態（不可刪除）
+    // 訂單：建立、讀取、更新狀態、刪除（老闆清理測試單或過期紀錄）
     match /artifacts/{appId}/public/data/orders/{orderId} {
       allow read:   if request.auth != null;
       allow create: if request.auth != null;
       allow update: if request.auth != null;
-      allow delete: if false;
+      allow delete: if request.auth != null;
     }
 
     // 餐點售完狀態（老闆切換、所有客人即時同步）
