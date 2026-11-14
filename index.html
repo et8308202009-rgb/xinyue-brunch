@@ -189,6 +189,15 @@
                 </div>
             </div>
 
+            <!-- 付款對帳小提醒 -->
+            <div class="mb-6 px-4 py-3 rounded-2xl bg-wine-900/50 border border-gold-400/25 flex flex-wrap items-center justify-between gap-2 text-xs text-cream-200/85">
+                <div class="flex items-center gap-4">
+                    <span>💰 已確認入帳：<strong id="stat-paid-revenue" class="text-emerald-400 text-sm">$0</strong></span>
+                    <span>⏳ 待收款 / 待對帳：<strong id="stat-unpaid-revenue" class="text-amber-300 text-sm">$0</strong></span>
+                </div>
+                <span class="text-cream-200/60">點擊訂單上的「標記已收款」即可完成對帳</span>
+            </div>
+
             <!-- 訂單篩選標籤 -->
             <div class="flex items-center gap-2 mb-6 overflow-x-auto pb-2">
                 <button onclick="setOwnerFilter('active')" id="filter-active" class="px-4 py-2 rounded-full text-sm font-bold bg-gold-500 text-wine-950 transition">進行中訂單 (新單/製作中)</button>
@@ -645,6 +654,36 @@
                 <div>
                     <input type="text" id="order-note" placeholder="客製化備註（例如：蛋全熟、不加胡椒、醬少...）" class="w-full px-3 py-1.5 rounded-lg bg-white border border-cream-300 text-xs focus:outline-none focus:border-wine-800">
                 </div>
+
+                <!-- 新增：付款方式選擇區 -->
+                <div class="pt-2 border-t border-cream-300/80 space-y-2.5">
+                    <label class="block text-xs font-bold text-wine-900">付款方式 *</label>
+                    <div class="grid grid-cols-2 gap-2">
+                        <button type="button" onclick="setPaymentMethod('counter')" id="pay-btn-counter" class="py-2 px-2.5 rounded-xl text-xs font-bold bg-wine-800 text-cream-50 border border-wine-800 transition text-center">
+                            💵 到店櫃檯付款
+                        </button>
+                        <button type="button" onclick="setPaymentMethod('transfer')" id="pay-btn-transfer" class="py-2 px-2.5 rounded-xl text-xs font-medium bg-white text-stone-700 border border-cream-300 hover:bg-cream-50 transition text-center">
+                            💳 線上轉帳先付款
+                        </button>
+                    </div>
+
+                    <!-- 線上轉帳資訊展開面板 -->
+                    <div id="transfer-info-box" class="hidden p-3 rounded-xl bg-white border border-gold-400/60 space-y-2.5 text-xs shadow-2xs">
+                        <div class="flex items-center justify-between bg-cream-100 p-2 rounded-lg">
+                            <div>
+                                <span class="text-stone-500 block text-[11px]" id="store-bank-label">銀行轉帳帳號 (822 中國信託)</span>
+                                <span class="font-mono font-bold text-wine-950 text-sm tracking-wider" id="store-bank-account">000-1234567890</span>
+                            </div>
+                            <button type="button" onclick="copyBankAccount()" class="px-2.5 py-1.5 rounded-lg bg-wine-800 hover:bg-wine-900 text-cream-50 font-medium text-[11px] transition shrink-0">
+                                複製帳號
+                            </button>
+                        </div>
+                        <div>
+                            <label for="transfer-last5" class="block text-stone-600 mb-1 font-medium">請填寫匯款帳號後五碼 (方便店家核帳) *</label>
+                            <input type="text" id="transfer-last5" maxlength="5" placeholder="例如：88990" class="w-full px-3 py-1.5 rounded-lg bg-cream-50 border border-cream-300 font-mono text-sm tracking-widest focus:outline-none focus:border-wine-800 focus:bg-white">
+                        </div>
+                    </div>
+                </div>
             </div>
 
             <!-- 已選餐點列表 -->
@@ -699,95 +738,92 @@
             appId: "1:422971767605:web:f0678e61b023fc4ac56a7c"
         };
 
-        // 自動判斷目前是在「預覽環境」還是「GitHub 正式網域」
-        let firebaseConfig = null;
-        if (typeof __firebase_config !== 'undefined') {
-            firebaseConfig = JSON.parse(__firebase_config);
-        } else if (MY_FIREBASE_CONFIG.apiKey && !MY_FIREBASE_CONFIG.apiKey.includes("請貼上")) {
-            firebaseConfig = MY_FIREBASE_CONFIG;
-        }
+        // 【店家收款帳號設定區】請在此修改為您店裡的真實收款銀行與帳號
+        window.STORE_PAYMENT_INFO = {
+            bankName: "822 中國信託 (昕悅早午餐)",
+            accountNumber: "000-1234567890"
+        };
 
+        // 判斷是否為系統測試環境或已填入正式金鑰
+        const rawConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : MY_FIREBASE_CONFIG;
+        const isFirebaseConfigured = rawConfig && rawConfig.apiKey && !rawConfig.apiKey.includes("請貼上");
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'xinyue-brunch-prod';
-        let auth = null;
+
         let db = null;
+        let auth = null;
         let currentUser = null;
         let allCloudOrders = [];
-        let lastPendingCount = null;
         let lastCustomerOrderId = null;
+        let isInitialLoad = true;
 
-        if (firebaseConfig) {
-            const app = initializeApp(firebaseConfig);
+        if (isFirebaseConfigured) {
+            const app = initializeApp(rawConfig);
             auth = getAuth(app);
             db = getFirestore(app);
-        }
 
-        // 驗證登入後啟動即時訂單監聽
-        async function initCloudSync() {
-            if (!auth) return;
-            try {
-                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-                    await signInWithCustomToken(auth, __initial_auth_token);
-                } else {
-                    await signInAnonymously(auth);
+            // 初始化驗證並監聽即時訂單
+            const initCloudConnection = async () => {
+                try {
+                    if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                        await signInWithCustomToken(auth, __initial_auth_token);
+                    } else {
+                        await signInAnonymously(auth);
+                    }
+                } catch (err) {
+                    console.error("雲端驗證失敗:", err);
                 }
-            } catch (err) {
-                console.error("雲端連線初始化失敗:", err);
-            }
-        }
+            };
+            initCloudConnection();
 
-        if (auth) {
             onAuthStateChanged(auth, (user) => {
                 currentUser = user;
-                if (!user) return;
-
-                const ordersRef = collection(db, 'artifacts', appId, 'public', 'data', 'orders');
-                onSnapshot(ordersRef, (snapshot) => {
-                    const orders = [];
-                    snapshot.forEach((docSnap) => {
-                        orders.push({ id: docSnap.id, ...docSnap.data() });
-                    });
-
-                    // 依建立時間由新到舊排序
-                    orders.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
-                    allCloudOrders = orders;
-
-                    // 若在老闆模式且有新的「待處理」訂單進來，播放提示音效
-                    const pendingCount = orders.filter(o => o.status === 'pending').length;
-                    if (lastPendingCount !== null && pendingCount > lastPendingCount && window.isOwnerLoggedIn) {
-                        window.playNotificationBell();
-                        window.showToast('🔔 叮咚！有新的線上訂單進來了！');
-                    }
-                    lastPendingCount = pendingCount;
-
-                    // 更新老闆看板畫面
-                    if (window.renderOwnerOrders) {
-                        window.renderOwnerOrders(orders);
-                    }
-
-                    // 更新客人端追蹤狀態畫面
-                    if (lastCustomerOrderId && window.updateCustomerOrderView) {
-                        const myOrder = orders.find(o => o.id === lastCustomerOrderId);
-                        if (myOrder) {
-                            window.updateCustomerOrderView(myOrder);
-                        }
-                    }
-                }, (error) => {
-                    console.error("即時訂單同步錯誤:", error);
-                });
+                if (user) {
+                    subscribeToOrders();
+                }
             });
-
-            initCloudSync();
         }
 
-        // 送出線上訂單至雲端
+        // 訂閱即時訂單資料流
+        function subscribeToOrders() {
+            if (!db || !currentUser) return;
+            const ordersRef = collection(db, 'artifacts', appId, 'public', 'data', 'orders');
+            onSnapshot(ordersRef, (snapshot) => {
+                const orders = [];
+                snapshot.forEach((docSnap) => {
+                    orders.push({ id: docSnap.id, ...docSnap.data() });
+                });
+                // 依時間新到舊排序
+                orders.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+
+                // 若在老闆模式且有新訂單進來，播放提示音
+                if (!isInitialLoad && orders.length > allCloudOrders.length && window.isOwnerLoggedIn) {
+                    window.playNotificationBell();
+                    window.showToast('🔔 叮咚！有新的客人線上點餐進來了！');
+                }
+                isInitialLoad = false;
+                allCloudOrders = orders;
+
+                // 更新老闆看板畫面
+                if (window.renderOwnerOrders) {
+                    window.renderOwnerOrders(orders);
+                }
+
+                // 若客人剛送出過訂單，同步更新客人的即時狀態視窗
+                if (lastCustomerOrderId) {
+                    const myOrder = orders.find(o => o.id === lastCustomerOrderId);
+                    if (myOrder && window.updateCustomerOrderView) {
+                        window.updateCustomerOrderView(myOrder);
+                    }
+                }
+            }, (error) => {
+                console.error("即時監聽錯誤:", error);
+            });
+        }
+
+        // 客人送出線上訂單至雲端
         window.submitOnlineOrder = async function() {
-            if (!window.cart || window.cart.length === 0) {
-                window.showToast('請先挑選餐點再送出訂單喔！');
-                return;
-            }
-            if (!db || !currentUser) {
-                window.showToast('尚未綁定正式雲端金鑰，已為您自動複製點餐明細！');
-                copyOrderSummary();
+            if (window.cart.length === 0) {
+                window.showToast('請先將餐點加入點餐單喔！');
                 return;
             }
 
@@ -795,7 +831,49 @@
             const tableNum = document.getElementById('table-number').value.trim();
             const pickupTime = document.getElementById('pickup-time').value;
             const note = document.getElementById('order-note').value.trim();
+            const paymentMethod = window.paymentMethod || 'counter';
+            const transferLast5 = document.getElementById('transfer-last5').value.trim();
+
+            if (paymentMethod === 'transfer' && transferLast5.length < 4) {
+                window.showToast('請輸入匯款帳號後五碼，方便老闆核對入帳喔！');
+                document.getElementById('transfer-last5').focus();
+                return;
+            }
+
             const totalPrice = window.cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
+
+            // 若尚未設定 Firebase 金鑰（例如剛上傳 GitHub 還沒綁定），自動切換為本機模擬展示模式
+            if (!isFirebaseConfigured || !db || !currentUser) {
+                const mockOrder = {
+                    id: 'local-' + Date.now(),
+                    orderNumber: String(Math.floor(100 + Math.random() * 900)),
+                    customerName,
+                    diningType: window.diningType || '內用',
+                    tableNumber: tableNum,
+                    pickupTime,
+                    note,
+                    paymentMethod,
+                    transferLast5: paymentMethod === 'transfer' ? transferLast5 : '',
+                    paymentStatus: 'unpaid',
+                    items: window.cart.map(i => ({ name: i.name, price: i.price, qty: i.qty })),
+                    totalPrice,
+                    status: 'pending',
+                    createdAt: Date.now(),
+                    timeString: new Date().toLocaleTimeString('zh-TW', { hour: '2-digit', minute: '2-digit' })
+                };
+                allCloudOrders.unshift(mockOrder);
+                window.clearCart();
+                window.toggleCart();
+                document.getElementById('order-note').value = '';
+                document.getElementById('transfer-last5').value = '';
+                const statusBtn = document.getElementById('my-order-status-btn');
+                statusBtn.classList.remove('hidden');
+                statusBtn.classList.add('flex');
+                window.updateCustomerOrderView(mockOrder);
+                window.openCustomerOrderModal();
+                window.showToast('訂單已建立！(目前為本機展示模式)');
+                return;
+            }
 
             const btn = document.getElementById('submit-order-btn');
             btn.disabled = true;
@@ -810,6 +888,9 @@
                     tableNumber: tableNum,
                     pickupTime,
                     note,
+                    paymentMethod, // 'counter' (到店付款) 或 'transfer' (線上轉帳)
+                    transferLast5: paymentMethod === 'transfer' ? transferLast5 : '',
+                    paymentStatus: 'unpaid', // 'unpaid' (未收款/待核帳) 或 'paid' (已確認收款)
                     items: window.cart.map(i => ({ name: i.name, price: i.price, qty: i.qty })),
                     totalPrice,
                     status: 'pending', // pending: 新訂單, preparing: 製作中, completed: 已完成
@@ -824,6 +905,7 @@
                 window.clearCart();
                 window.toggleCart();
                 document.getElementById('order-note').value = '';
+                document.getElementById('transfer-last5').value = '';
 
                 // 顯示頂部「訂單進度」按鈕並開啟追蹤卡片
                 const statusBtn = document.getElementById('my-order-status-btn');
@@ -853,6 +935,20 @@
             } catch (error) {
                 console.error("更新狀態失敗:", error);
                 window.showToast('狀態更新失敗，請重試');
+            }
+        };
+
+        // 老闆更新收款/對帳狀態
+        window.togglePaymentStatus = async function(orderId, currentPayStatus) {
+            if (!currentUser) return;
+            const nextStatus = currentPayStatus === 'paid' ? 'unpaid' : 'paid';
+            try {
+                const orderDoc = doc(db, 'artifacts', appId, 'public', 'data', 'orders', orderId);
+                await updateDoc(orderDoc, { paymentStatus: nextStatus });
+                window.showToast(nextStatus === 'paid' ? '💰 已確認收到款項！' : '已改回待收款狀態');
+            } catch (error) {
+                console.error("更新收款狀態失敗:", error);
+                window.showToast('收款狀態更新失敗，請重試');
             }
         };
 
@@ -1047,6 +1143,7 @@
         window.cart = [];
         let activeCategory = 'all';
         window.diningType = '內用';
+        window.paymentMethod = 'counter';
         window.isOwnerLoggedIn = false;
         let ownerFilter = 'active';
         const OWNER_PASSCODE = '5262699'; // 老闆專屬管理密碼 (店舖電話號碼)
@@ -1056,6 +1153,12 @@
             renderCategoryTabs();
             renderMenu();
             updateCartUI();
+
+            // 套用店家收款銀行設定
+            if (window.STORE_PAYMENT_INFO) {
+                document.getElementById('store-bank-label').textContent = `銀行轉帳 (${window.STORE_PAYMENT_INFO.bankName})`;
+                document.getElementById('store-bank-account').textContent = window.STORE_PAYMENT_INFO.accountNumber;
+            }
 
             // 搜尋監聽
             document.getElementById('menu-search').addEventListener('input', (e) => {
@@ -1303,6 +1406,40 @@
             }
         }
 
+        // 設定付款方式 (到店付款 / 線上轉帳)
+        function setPaymentMethod(method) {
+            window.paymentMethod = method;
+            const btnCounter = document.getElementById('pay-btn-counter');
+            const btnTransfer = document.getElementById('pay-btn-transfer');
+            const transferBox = document.getElementById('transfer-info-box');
+
+            if (method === 'counter') {
+                btnCounter.className = 'py-2 px-2.5 rounded-xl text-xs font-bold bg-wine-800 text-cream-50 border border-wine-800 transition text-center';
+                btnTransfer.className = 'py-2 px-2.5 rounded-xl text-xs font-medium bg-white text-stone-700 border border-cream-300 hover:bg-cream-50 transition text-center';
+                transferBox.classList.add('hidden');
+            } else {
+                btnTransfer.className = 'py-2 px-2.5 rounded-xl text-xs font-bold bg-wine-800 text-cream-50 border border-wine-800 transition text-center';
+                btnCounter.className = 'py-2 px-2.5 rounded-xl text-xs font-medium bg-white text-stone-700 border border-cream-300 hover:bg-cream-50 transition text-center';
+                transferBox.classList.remove('hidden');
+            }
+        }
+
+        // 一鍵複製店家收款帳號
+        function copyBankAccount() {
+            const acc = window.STORE_PAYMENT_INFO ? window.STORE_PAYMENT_INFO.accountNumber : '000-1234567890';
+            const textarea = document.createElement('textarea');
+            textarea.value = acc;
+            document.body.appendChild(textarea);
+            textarea.select();
+            try {
+                document.execCommand('copy');
+                showToast('收款帳號已複製，轉帳後請填寫後五碼喔！');
+            } catch (err) {
+                showToast('請手動輸入帳號：' + acc);
+            }
+            document.body.removeChild(textarea);
+        }
+
         // 更新購物車 UI
         function updateCartUI() {
             const totalQty = window.cart.reduce((sum, item) => sum + item.qty, 0);
@@ -1366,11 +1503,14 @@
             const diningInfo = window.diningType === '內用' 
                 ? `內用 ${tableNum ? `(桌號：${tableNum})` : ''}` 
                 : '外帶';
+            const payInfo = window.paymentMethod === 'transfer'
+                ? `線上轉帳 (後五碼：${document.getElementById('transfer-last5').value.trim() || '未填'})`
+                : '到店櫃檯付款';
             
             const totalPrice = window.cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
             const itemsText = window.cart.map(item => `・${item.name} x${item.qty} ($${item.price * item.qty})`).join('\n');
 
-            const summary = `【昕悅早午餐 點餐清單】\n用餐方式：${diningInfo}\n------------------\n${itemsText}\n------------------\n合計金額：$${totalPrice}`;
+            const summary = `【昕悅早午餐 點餐清單】\n用餐方式：${diningInfo}\n付款方式：${payInfo}\n------------------\n${itemsText}\n------------------\n合計金額：$${totalPrice}`;
 
             const textarea = document.createElement('textarea');
             textarea.value = summary;
@@ -1451,11 +1591,15 @@
             const preparing = orders.filter(o => o.status === 'preparing').length;
             const completed = orders.filter(o => o.status === 'completed').length;
             const revenue = orders.reduce((sum, o) => sum + (o.totalPrice || 0), 0);
+            const paidRevenue = orders.filter(o => o.paymentStatus === 'paid').reduce((sum, o) => sum + (o.totalPrice || 0), 0);
+            const unpaidRevenue = revenue - paidRevenue;
 
             document.getElementById('stat-pending').textContent = pending;
             document.getElementById('stat-preparing').textContent = preparing;
             document.getElementById('stat-completed').textContent = completed;
             document.getElementById('stat-revenue').textContent = `$${revenue}`;
+            document.getElementById('stat-paid-revenue').textContent = `$${paidRevenue}`;
+            document.getElementById('stat-unpaid-revenue').textContent = `$${unpaidRevenue}`;
 
             // 篩選顯示的訂單
             let filtered = orders;
@@ -1479,17 +1623,27 @@
             grid.innerHTML = filtered.map(order => {
                 const isPending = order.status === 'pending';
                 const isPreparing = order.status === 'preparing';
+                const isPaid = order.paymentStatus === 'paid';
+                const isTransfer = order.paymentMethod === 'transfer';
+
                 const badgeHtml = isPending
                     ? `<span class="px-3 py-1 rounded-full bg-amber-500 text-wine-950 font-bold text-xs animate-pulse">🔔 新訂單待接單</span>`
                     : isPreparing
                         ? `<span class="px-3 py-1 rounded-full bg-sky-500 text-white font-bold text-xs">🍳 廚房製作中</span>`
                         : `<span class="px-3 py-1 rounded-full bg-emerald-600 text-white font-bold text-xs">✓ 已完成取餐</span>`;
 
+                // 付款狀態徽章
+                const paymentBadgeHtml = isPaid
+                    ? `<span class="px-2.5 py-0.5 rounded-md bg-emerald-100 text-emerald-800 border border-emerald-300 font-bold text-[11px]">💰 已確認收款</span>`
+                    : isTransfer
+                        ? `<span class="px-2.5 py-0.5 rounded-md bg-indigo-100 text-indigo-800 border border-indigo-300 font-bold text-[11px]">💳 轉帳後五碼：${order.transferLast5 || '未填'} (待核帳)</span>`
+                        : `<span class="px-2.5 py-0.5 rounded-md bg-amber-100 text-amber-800 border border-amber-300 font-bold text-[11px]">💵 到店櫃檯付款</span>`;
+
                 const actionBtnHtml = isPending
                     ? `<button onclick="window.updateOrderStatus('${order.id}', 'preparing')" class="w-full py-3 rounded-xl bg-amber-500 hover:bg-amber-400 text-wine-950 font-bold text-sm transition shadow-md">接單並開始製作</button>`
                     : isPreparing
                         ? `<button onclick="window.updateOrderStatus('${order.id}', 'completed')" class="w-full py-3 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-wine-950 font-bold text-sm transition shadow-md">✓ 標記為已完成 / 可取餐</button>`
-                        : `<div class="text-center text-xs text-emerald-400/80 py-2 font-medium">此筆訂單已結案</div>`;
+                        : `<div class="text-center text-xs text-emerald-700 py-2 font-bold">此筆訂單已結案</div>`;
 
                 return `
                     <div class="rounded-3xl bg-[#fffcf7] text-wine-950 p-5 border-2 ${isPending ? 'border-amber-400 shadow-amber-500/20 shadow-xl' : 'border-gold-400/50 shadow-lg'} flex flex-col justify-between">
@@ -1500,6 +1654,15 @@
                                     <span class="text-xs text-stone-500 ml-2">${order.timeString || ''}</span>
                                 </div>
                                 ${badgeHtml}
+                            </div>
+
+                            <!-- 付款與對帳資訊條 -->
+                            <div class="mb-3 flex items-center justify-between gap-2">
+                                ${paymentBadgeHtml}
+                                <button onclick="window.togglePaymentStatus('${order.id}', '${order.paymentStatus || 'unpaid'}')" 
+                                        class="px-2.5 py-1 rounded-lg text-[11px] font-bold border transition ${isPaid ? 'bg-stone-100 text-stone-600 border-stone-300 hover:bg-stone-200' : 'bg-emerald-600 text-white border-emerald-600 hover:bg-emerald-700'}">
+                                    ${isPaid ? '取消收款標記' : '✓ 標記已收款'}
+                                </button>
                             </div>
 
                             <div class="bg-cream-100 rounded-xl p-3 mb-3 text-xs space-y-1 border border-cream-200">
@@ -1530,7 +1693,7 @@
 
                         <div class="pt-3 border-t border-wine-800/15 space-y-3">
                             <div class="flex items-center justify-between">
-                                <span class="text-xs text-stone-500 font-medium">應收總金額</span>
+                                <span class="text-xs text-stone-500 font-medium">訂單總金額</span>
                                 <span class="font-serif text-2xl font-black text-wine-800">$${order.totalPrice}</span>
                             </div>
                             ${actionBtnHtml}
@@ -1612,6 +1775,14 @@
                     <div class="flex justify-between">
                         <span class="text-stone-500">取餐人 / 方式</span>
                         <span class="font-bold text-stone-800">${order.customerName} (${order.diningType}${order.tableNumber ? ' ' + order.tableNumber : ''})</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-stone-500">付款狀態</span>
+                        <span class="font-bold ${order.paymentStatus === 'paid' ? 'text-emerald-700' : 'text-wine-800'}">
+                            ${order.paymentStatus === 'paid' 
+                                ? '✓ 店家已確認收款' 
+                                : (order.paymentMethod === 'transfer' ? `線上轉帳 (後五碼：${order.transferLast5}) - 待核帳` : '到店櫃檯付款')}
+                        </span>
                     </div>
                     <div class="flex justify-between">
                         <span class="text-stone-500">預計取餐</span>
