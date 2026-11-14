@@ -129,10 +129,11 @@
             </nav>
 
             <!-- 線上點餐購物車按鈕 -->
-            <div class="flex items-center gap-3">
-                <button id="my-order-status-btn" onclick="openCustomerOrderModal()" class="hidden items-center gap-1.5 bg-wine-800 hover:bg-wine-700 text-cream-50 border border-gold-400/50 px-3.5 py-2 rounded-full text-xs sm:text-sm font-medium transition shadow-sm">
-                    <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-                    <span>訂單進度</span>
+            <div class="flex items-center gap-2 sm:gap-3">
+                <button id="my-order-status-btn" onclick="openCustomerOrderModal()" class="flex items-center gap-1.5 bg-wine-800 hover:bg-wine-700 text-cream-50 border border-gold-400/50 px-3 sm:px-3.5 py-2 rounded-full text-xs sm:text-sm font-medium transition shadow-sm">
+                    <span id="my-order-dot" class="w-2 h-2 rounded-full bg-gold-400"></span>
+                    <span>我的訂單</span>
+                    <span id="my-order-badge" class="hidden bg-emerald-500 text-wine-950 font-bold text-[10px] px-1.5 py-0.2 rounded-full">0</span>
                 </button>
                 <button onclick="toggleCart()" class="relative flex items-center gap-2 bg-gradient-to-r from-gold-500 to-gold-400 hover:from-gold-400 hover:to-gold-300 text-wine-950 px-4 sm:px-5 py-2.5 rounded-full text-sm font-bold transition shadow-md shadow-black/30 active:scale-95">
                     <svg class="w-4 h-4 text-wine-950" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -575,17 +576,21 @@
     <!-- 客人送出訂單後的「即時狀態追蹤卡片」視窗 -->
     <div id="customer-order-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4">
         <div onclick="closeCustomerOrderModal()" class="absolute inset-0 bg-wine-950/75 backdrop-blur-xs"></div>
-        <div class="relative w-full max-w-md rounded-3xl bg-[#fffcf7] text-wine-950 p-6 sm:p-7 border-2 border-gold-400 shadow-2xl">
-            <div class="flex items-center justify-between pb-4 mb-4 border-b border-wine-800/15">
+        <div class="relative w-full max-w-md rounded-3xl bg-[#fffcf7] text-wine-950 p-6 sm:p-7 border-2 border-gold-400 shadow-2xl max-h-[90vh] flex flex-col">
+            <div class="flex items-center justify-between pb-4 mb-4 border-b border-wine-800/15 shrink-0">
                 <div>
-                    <span class="text-xs text-gold-600 font-bold tracking-wider uppercase">Order Tracking</span>
-                    <h3 class="font-serif text-xl font-bold text-wine-900">您的即時訂單狀態</h3>
+                    <span class="text-xs text-gold-600 font-bold tracking-wider uppercase">Order History & Tracking</span>
+                    <h3 class="font-serif text-xl font-bold text-wine-900">我的點餐紀錄與進度</h3>
                 </div>
                 <button onclick="closeCustomerOrderModal()" class="p-2 rounded-full hover:bg-cream-200 text-stone-500">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
                 </button>
             </div>
-            <div id="customer-order-detail" class="space-y-4">
+            <!-- 多筆訂單切換標籤列 -->
+            <div id="customer-order-tabs" class="flex items-center gap-2 overflow-x-auto no-scrollbar pb-3 mb-3 border-b border-cream-200 shrink-0 hidden">
+                <!-- 由 JS 動態生成 -->
+            </div>
+            <div id="customer-order-detail" class="space-y-4 overflow-y-auto pr-1">
                 <!-- 由 JS 動態同步顯示最新訂單狀態 -->
             </div>
         </div>
@@ -753,16 +758,46 @@
         let auth = null;
         let currentUser = null;
         let allCloudOrders = [];
-        let lastCustomerOrderId = null;
+        window.myLocalOrders = []; // 儲存客人本機送出的所有訂單紀錄
+        window.selectedCustomerOrderId = null;
         let isInitialLoad = true;
+
+        // 從瀏覽器記憶讀取客人的歷史訂單 ID（重新整理網頁也不會遺失）
+        const SAVED_IDS_KEY = 'xinyue_my_order_ids';
+        const SAVED_MOCK_ORDERS_KEY = 'xinyue_my_mock_orders';
+        function getSavedOrderIds() {
+            try {
+                return JSON.parse(localStorage.getItem(SAVED_IDS_KEY) || '[]');
+            } catch (e) {
+                return [];
+            }
+        }
+        function saveOrderIdToDevice(orderId) {
+            try {
+                const ids = getSavedOrderIds();
+                if (!ids.includes(orderId)) {
+                    ids.unshift(orderId);
+                    localStorage.setItem(SAVED_IDS_KEY, JSON.stringify(ids.slice(0, 15)));
+                }
+            } catch (e) {}
+        }
+
+        // 初始化載入本機展示訂單（若有）
+        try {
+            const savedMocks = JSON.parse(localStorage.getItem(SAVED_MOCK_ORDERS_KEY) || '[]');
+            if (savedMocks.length > 0) {
+                window.myLocalOrders = savedMocks;
+                window.selectedCustomerOrderId = savedMocks[0].id;
+            }
+        } catch (e) {}
 
         if (isFirebaseConfigured) {
             const app = initializeApp(rawConfig);
             auth = getAuth(app);
             db = getFirestore(app);
 
-            // 初始化驗證並監聽即時訂單
-            const initCloudConnection = async () => {
+            // 執行匿名或自訂 Token 登入，確保讀寫權限
+            const initAuth = async () => {
                 try {
                     if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
                         await signInWithCustomToken(auth, __initial_auth_token);
@@ -770,35 +805,38 @@
                         await signInAnonymously(auth);
                     }
                 } catch (err) {
-                    console.error("雲端驗證失敗:", err);
+                    console.error("Firebase 驗證失敗:", err);
                 }
             };
-            initCloudConnection();
+            initAuth();
 
             onAuthStateChanged(auth, (user) => {
                 currentUser = user;
                 if (user) {
-                    subscribeToOrders();
+                    subscribeToRealtimeOrders();
                 }
             });
         }
 
-        // 訂閱即時訂單資料流
-        function subscribeToOrders() {
-            if (!db || !currentUser) return;
+        // 即時監聽所有雲端訂單（供老闆看板與客人進度同步使用）
+        function subscribeToRealtimeOrders() {
+            if (!currentUser || !db) return;
             const ordersRef = collection(db, 'artifacts', appId, 'public', 'data', 'orders');
             onSnapshot(ordersRef, (snapshot) => {
                 const orders = [];
                 snapshot.forEach((docSnap) => {
                     orders.push({ id: docSnap.id, ...docSnap.data() });
                 });
-                // 依時間新到舊排序
+                // 依照建立時間新到舊排序
                 orders.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
 
-                // 若在老闆模式且有新訂單進來，播放提示音
-                if (!isInitialLoad && orders.length > allCloudOrders.length && window.isOwnerLoggedIn) {
-                    window.playNotificationBell();
-                    window.showToast('🔔 叮咚！有新的客人線上點餐進來了！');
+                // 若老闆已登入接單看板，且有新訂單進來時播放提示音
+                if (!isInitialLoad && window.isOwnerLoggedIn) {
+                    const prevIds = new Set(allCloudOrders.map(o => o.id));
+                    const hasNewPending = orders.some(o => !prevIds.has(o.id) && o.status === 'pending');
+                    if (hasNewPending && window.playNotificationBell) {
+                        window.playNotificationBell();
+                    }
                 }
                 isInitialLoad = false;
                 allCloudOrders = orders;
@@ -808,11 +846,16 @@
                     window.renderOwnerOrders(orders);
                 }
 
-                // 若客人剛送出過訂單，同步更新客人的即時狀態視窗
-                if (lastCustomerOrderId) {
-                    const myOrder = orders.find(o => o.id === lastCustomerOrderId);
-                    if (myOrder && window.updateCustomerOrderView) {
-                        window.updateCustomerOrderView(myOrder);
+                // 比對並同步客人本機儲存的歷史訂單狀態
+                const savedIds = getSavedOrderIds();
+                const matchedMyOrders = orders.filter(o => savedIds.includes(o.id));
+                if (matchedMyOrders.length > 0) {
+                    window.myLocalOrders = matchedMyOrders;
+                    if (!window.selectedCustomerOrderId || !matchedMyOrders.some(o => o.id === window.selectedCustomerOrderId)) {
+                        window.selectedCustomerOrderId = matchedMyOrders[0].id;
+                    }
+                    if (window.refreshCustomerOrdersUI) {
+                        window.refreshCustomerOrdersUI();
                     }
                 }
             }, (error) => {
@@ -862,16 +905,19 @@
                     timeString: new Date().toLocaleTimeString('zh-TW', { hour: '2-digit', minute: '2-digit' })
                 };
                 allCloudOrders.unshift(mockOrder);
+                window.myLocalOrders.unshift(mockOrder);
+                window.selectedCustomerOrderId = mockOrder.id;
+                try {
+                    localStorage.setItem(SAVED_MOCK_ORDERS_KEY, JSON.stringify(window.myLocalOrders.slice(0, 15)));
+                } catch (e) {}
+
                 window.clearCart();
                 window.toggleCart();
                 document.getElementById('order-note').value = '';
                 document.getElementById('transfer-last5').value = '';
-                const statusBtn = document.getElementById('my-order-status-btn');
-                statusBtn.classList.remove('hidden');
-                statusBtn.classList.add('flex');
-                window.updateCustomerOrderView(mockOrder);
+                window.refreshCustomerOrdersUI();
                 window.openCustomerOrderModal();
-                window.showToast('訂單已建立！(目前為本機展示模式)');
+                window.showToast('訂單已建立！隨時可點右上角「我的訂單」查看');
                 return;
             }
 
@@ -899,7 +945,10 @@
                 };
 
                 const docRef = await addDoc(ordersRef, orderPayload);
-                lastCustomerOrderId = docRef.id;
+                const fullOrder = { id: docRef.id, ...orderPayload };
+                saveOrderIdToDevice(docRef.id);
+                window.myLocalOrders.unshift(fullOrder);
+                window.selectedCustomerOrderId = docRef.id;
 
                 // 清空購物車並關閉抽屜
                 window.clearCart();
@@ -907,12 +956,7 @@
                 document.getElementById('order-note').value = '';
                 document.getElementById('transfer-last5').value = '';
 
-                // 顯示頂部「訂單進度」按鈕並開啟追蹤卡片
-                const statusBtn = document.getElementById('my-order-status-btn');
-                statusBtn.classList.remove('hidden');
-                statusBtn.classList.add('flex');
-
-                window.updateCustomerOrderView({ id: docRef.id, ...orderPayload });
+                window.refreshCustomerOrdersUI();
                 window.openCustomerOrderModal();
                 window.showToast('訂單已成功傳送給昕悅早午餐！');
             } catch (error) {
@@ -1153,6 +1197,9 @@
             renderCategoryTabs();
             renderMenu();
             updateCartUI();
+            if (window.refreshCustomerOrdersUI) {
+                window.refreshCustomerOrdersUI();
+            }
 
             // 套用店家收款銀行設定
             if (window.STORE_PAYMENT_INFO) {
@@ -1729,12 +1776,75 @@
 
         // ================= 客人訂單進度追蹤視窗邏輯 =================
         window.openCustomerOrderModal = function() {
+            window.refreshCustomerOrdersUI();
             document.getElementById('customer-order-modal').classList.remove('hidden');
         };
 
         function closeCustomerOrderModal() {
             document.getElementById('customer-order-modal').classList.add('hidden');
         }
+
+        window.selectCustomerOrder = function(orderId) {
+            window.selectedCustomerOrderId = orderId;
+            window.refreshCustomerOrdersUI();
+        };
+
+        window.refreshCustomerOrdersUI = function() {
+            const orders = window.myLocalOrders || [];
+            const badge = document.getElementById('my-order-badge');
+            const dot = document.getElementById('my-order-dot');
+            const tabsContainer = document.getElementById('customer-order-tabs');
+            const detailContainer = document.getElementById('customer-order-detail');
+
+            // 更新頂部導覽列「我的訂單」按鈕徽章
+            if (orders.length > 0) {
+                badge.textContent = orders.length;
+                badge.classList.remove('hidden');
+                dot.className = 'w-2 h-2 rounded-full bg-emerald-400 animate-pulse';
+            } else {
+                badge.classList.add('hidden');
+                dot.className = 'w-2 h-2 rounded-full bg-gold-400';
+            }
+
+            // 若尚未有任何點餐紀錄，顯示親切引導畫面
+            if (orders.length === 0) {
+                tabsContainer.classList.add('hidden');
+                detailContainer.innerHTML = `
+                    <div class="text-center py-10 space-y-3">
+                        <div class="w-14 h-14 rounded-full bg-cream-100 text-wine-800 flex items-center justify-center mx-auto border border-cream-300 text-2xl">
+                            🍽️
+                        </div>
+                        <h4 class="font-serif font-bold text-wine-900 text-lg">目前還沒有點餐紀錄喔</h4>
+                        <p class="text-xs text-stone-500 max-w-xs mx-auto leading-relaxed">
+                            在菜單挑選喜愛的餐點並送出訂單後，隨時都可以點擊右上角「我的訂單」查看明細與製作進度！
+                        </p>
+                        <button onclick="closeCustomerOrderModal()" class="mt-2 px-6 py-2.5 rounded-full bg-wine-800 hover:bg-wine-900 text-cream-50 text-xs font-bold transition">
+                            立即去點餐
+                        </button>
+                    </div>
+                `;
+                return;
+            }
+
+            // 若有多筆訂單，顯示切換分頁標籤
+            if (orders.length > 1) {
+                tabsContainer.classList.remove('hidden');
+                tabsContainer.innerHTML = orders.map((o, index) => {
+                    const isSelected = o.id === window.selectedCustomerOrderId;
+                    return `
+                        <button onclick="selectCustomerOrder('${o.id}')" 
+                                class="px-3.5 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition ${isSelected ? 'bg-wine-800 text-cream-50 shadow-xs' : 'bg-cream-100 text-stone-600 hover:bg-cream-200'}">
+                            #${o.orderNumber} (${o.timeString || '訂單' + (orders.length - index)})
+                        </button>
+                    `;
+                }).join('');
+            } else {
+                tabsContainer.classList.add('hidden');
+            }
+
+            const targetOrder = orders.find(o => o.id === window.selectedCustomerOrderId) || orders[0];
+            window.updateCustomerOrderView(targetOrder);
+        };
 
         window.updateCustomerOrderView = function(order) {
             const container = document.getElementById('customer-order-detail');
@@ -1773,6 +1883,10 @@
                         <span class="font-serif font-black text-wine-900 text-lg">#${order.orderNumber}</span>
                     </div>
                     <div class="flex justify-between">
+                        <span class="text-stone-500">下單時間</span>
+                        <span class="font-medium text-stone-700">${order.timeString || '剛剛'}</span>
+                    </div>
+                    <div class="flex justify-between">
                         <span class="text-stone-500">取餐人 / 方式</span>
                         <span class="font-bold text-stone-800">${order.customerName} (${order.diningType}${order.tableNumber ? ' ' + order.tableNumber : ''})</span>
                     </div>
@@ -1788,14 +1902,18 @@
                         <span class="text-stone-500">預計取餐</span>
                         <span class="font-medium text-stone-800">${order.pickupTime}</span>
                     </div>
+                    ${order.note ? `<div class="pt-1.5 border-t border-cream-300 text-xs text-rose-700 font-bold">備註：${order.note}</div>` : ''}
                 </div>
-                <div class="space-y-1.5 max-h-40 overflow-y-auto px-1">
-                    ${(order.items || []).map(i => `
-                        <div class="flex justify-between text-xs text-stone-700 py-1 border-b border-dashed border-stone-200">
-                            <span>${i.name} x${i.qty}</span>
-                            <span class="font-bold">$${i.price * i.qty}</span>
-                        </div>
-                    `).join('')}
+                <div>
+                    <span class="text-xs font-bold text-wine-900 block mb-1.5 px-1">點餐明細 (${(order.items || []).reduce((s, i) => s + i.qty, 0)} 份)</span>
+                    <div class="space-y-1.5 max-h-40 overflow-y-auto px-1 bg-white rounded-xl p-2.5 border border-cream-200">
+                        ${(order.items || []).map(i => `
+                            <div class="flex justify-between text-xs text-stone-700 py-1 border-b border-dashed border-stone-200 last:border-none">
+                                <span>${i.name} <strong class="text-wine-800">x${i.qty}</strong></span>
+                                <span class="font-bold">$${i.price * i.qty}</span>
+                            </div>
+                        `).join('')}
+                    </div>
                 </div>
                 <div class="flex justify-between items-center pt-2 border-t border-wine-800/15">
                     <span class="text-sm font-medium text-stone-600">訂單總金額</span>
