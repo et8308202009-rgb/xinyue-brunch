@@ -1,15 +1,21 @@
 rules_version = '2';
 
-// 昕悅早午餐：只允許「已登入（匿名驗證）」的裝置讀寫訂單集合
-// 路徑：artifacts/{appId}/public/data/orders/{orderId}
+// 昕悅早午餐：只允許「已登入（匿名驗證）」的裝置讀寫訂單與餐點供應狀態
 service cloud.firestore {
   match /databases/{database}/documents {
 
+    // 訂單：建立、讀取、更新狀態（不可刪除）
     match /artifacts/{appId}/public/data/orders/{orderId} {
       allow read:   if request.auth != null;
       allow create: if request.auth != null;
       allow update: if request.auth != null;
       allow delete: if false;
+    }
+
+    // 餐點售完狀態（老闆切換、所有客人即時同步）
+    match /artifacts/{appId}/public/data/settings/{docId} {
+      allow read:   if request.auth != null;
+      allow write:  if request.auth != null;
     }
 
     // 其他所有路徑一律關閉
