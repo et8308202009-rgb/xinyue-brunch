@@ -655,7 +655,7 @@
             </div>
 
             <!-- 中間可完整捲動區域：上方先看清楚「已選餐點明細」，下方填寫「用餐與付款資訊」 -->
-            <div class="flex-1 overflow-y-auto divide-y divide-cream-200">
+            <div id="cart-scroll-container" class="flex-1 overflow-y-auto divide-y divide-cream-200 scroll-smooth">
                 <!-- 1. 已選餐點列表 (優先顯示，不被遮擋) -->
                 <div class="p-4 sm:p-5 space-y-2.5">
                     <div class="flex items-center justify-between">
@@ -1793,6 +1793,18 @@
                 btnTransfer.className = 'py-2 px-2.5 rounded-xl text-xs font-bold bg-wine-800 text-cream-50 border border-wine-800 transition text-center';
                 btnCounter.className = 'py-2 px-2.5 rounded-xl text-xs font-medium bg-white text-stone-700 border border-cream-300 hover:bg-cream-50 transition text-center';
                 transferBox.classList.remove('hidden');
+
+                // 自動平滑捲動至底部並顯示帳號與後五碼輸入框，避免手機版被遮擋
+                setTimeout(() => {
+                    const scrollContainer = document.getElementById('cart-scroll-container');
+                    if (scrollContainer) {
+                        scrollContainer.scrollTo({
+                            top: scrollContainer.scrollHeight,
+                            behavior: 'smooth'
+                        });
+                    }
+                    transferBox.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                }, 60);
             }
         }
 
