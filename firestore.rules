@@ -11,12 +11,13 @@ service cloud.firestore {
       allow read, write: if request.auth != null;
     }
 
-    // 3. 【總部最高機密授權資料】所有店家僅能「讀取」自己的狀態；
-    // 只有攜帶總部專屬簽章密鑰的請求才能「新增或修改」開關與到期日，外部工程師完全無法竄改！
+    // 3. 【總部授權資料】所有店家僅能「讀取」自己的狀態；
+    // 只有「總部管理員帳號」的登入 UID 才能新增或修改開關與到期日。
+    // 這是身分驗證（Firebase Auth UID），不是前端密碼，外部工程師拿到原始碼也無法竄改。
     match /artifacts/{appId}/public/data/hq_stores/{storeId} {
       allow read: if request.auth != null;
       allow create, update: if request.auth != null
-                            && request.resource.data.hqSecretKey == "XINYUE_HQ_MASTER_SIG_2026_998877";
+                            && request.auth.uid == "PaQjiVn6dZdxe43kOJL2NuTyHKM2";
       allow delete: if false; // 禁止從前端刪除任何店家授權紀錄
     }
   }
