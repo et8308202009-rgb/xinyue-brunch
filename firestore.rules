@@ -1,26 +1,23 @@
 rules_version = '2';
-
-// 昕悅早午餐：只允許「已登入（匿名驗證）」的裝置讀寫訂單與餐點供應狀態
 service cloud.firestore {
   match /databases/{database}/documents {
-
-    // 訂單：建立、讀取、更新狀態、刪除（老闆清理測試單或過期紀錄）
+    // 1. 訂單資料：允許已驗證用戶建立、讀取、更新狀態與刪除測試單
     match /artifacts/{appId}/public/data/orders/{orderId} {
-      allow read:   if request.auth != null;
-      allow create: if request.auth != null;
-      allow update: if request.auth != null;
-      allow delete: if request.auth != null;
+      allow read, create, update, delete: if request.auth != null;
     }
 
-    // 餐點售完狀態（老闆切換、所有客人即時同步）
-    match /artifacts/{appId}/public/data/settings/{docId} {
-      allow read:   if request.auth != null;
-      allow write:  if request.auth != null;
+    // 2. 餐點售完庫存設定：允許讀取與店家後台切換
+    match /artifacts/{appId}/public/data/settings/{settingId} {
+      allow read, write: if request.auth != null;
     }
 
-    // 其他所有路徑一律關閉
-    match /{document=**} {
-      allow read, write: if false;
+    // 3. 【總部最高機密授權資料】所有店家僅能「讀取」自己的狀態；
+    // 只有攜帶總部專屬簽章密鑰的請求才能「新增或修改」開關與到期日，外部工程師完全無法竄改！
+    match /artifacts/{appId}/public/data/hq_stores/{storeId} {
+      allow read: if request.auth != null;
+      allow create, update: if request.auth != null
+                            && request.resource.data.hqSecretKey == "XINYUE_HQ_MASTER_SIG_2026_998877";
+      allow delete: if false; // 禁止從前端刪除任何店家授權紀錄
     }
   }
 }

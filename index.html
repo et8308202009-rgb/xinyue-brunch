@@ -169,6 +169,10 @@
             </div>
         </div>
 
+        <!-- 系統授權到期提醒橫幅 (由開發者主控台控制顯示) -->
+        <div id="owner-license-warning-banner" class="hidden bg-amber-500 text-wine-950 px-4 py-2.5 text-center text-xs sm:text-sm font-bold shadow-md">
+            <span id="owner-license-warning-text">⚠️ 系統服務授權即將到期，請聯繫服務專員辦理續約</span>
+        </div>
         <div class="max-w-6xl mx-auto px-4 sm:px-6 pt-8">
             <!-- 今日接單統計卡片 -->
             <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
@@ -579,6 +583,24 @@
     </footer>
     </main>
 
+    <!-- 系統授權已到期鎖定遮罩視窗 (當總部停權或合約逾期時自動顯示) -->
+    <div id="license-locked-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4">
+        <div class="absolute inset-0 bg-wine-950/95 backdrop-blur-md"></div>
+        <div class="relative w-full max-w-md rounded-3xl bg-[#fffcf7] text-wine-950 p-7 sm:p-8 border-2 border-rose-400 shadow-2xl text-center space-y-4">
+            <div class="w-16 h-16 rounded-full bg-rose-100 text-rose-700 flex items-center justify-center mx-auto border-2 border-rose-300 text-3xl">
+                🔒
+            </div>
+            <h3 class="font-serif text-2xl font-black text-wine-900">系統服務授權已暫停</h3>
+            <p id="license-locked-reason" class="text-sm text-stone-700 leading-relaxed bg-cream-100 p-4 rounded-2xl border border-cream-300">
+                您的系統月租服務授權已到期，請聯繫系統服務專員辦理續約以恢復即時接單功能。
+            </p>
+            <div class="pt-2">
+                <button onclick="exitOwnerMode(); closeLicenseLockedModal();" class="w-full py-3 rounded-xl bg-wine-800 hover:bg-wine-900 text-cream-50 text-sm font-bold transition">
+                    返回前台展示頁面
+                </button>
+            </div>
+        </div>
+    </div>
     <!-- 老闆密碼驗證視窗 (Modal) -->
     <div id="owner-login-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4">
         <div onclick="closeOwnerLoginModal()" class="absolute inset-0 bg-wine-950/80 backdrop-blur-xs"></div>
@@ -840,24 +862,33 @@
         import { getFirestore, collection, addDoc, onSnapshot, doc, updateDoc, setDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         // =========================================================================
-        // 【GitHub 正式上線設定區】
-        // 當您將此檔案上傳到 GitHub Pages 後，請將下方 MY_FIREBASE_CONFIG 
-        // 替換成您在 Google Firebase 控制台申請的專案設定碼，即可啟用跨裝置即時接單！
+        // 【GitHub 正式上線與防竄改安全鎖設定區】
         // =========================================================================
-        const MY_FIREBASE_CONFIG = {
+        const STORE_ID = "xinyue-brunch"; // 此店家的專屬識別代碼（對應總部 admin.html 中的 STORE_ID）
+        const ALLOWED_DOMAINS = ["localhost", "127.0.0.1", "github.io"]; // 允許執行的合法網域白名單（可加上店家專屬網域）
+
+        const MY_FIREBASE_CONFIG = Object.freeze({
             apiKey: "AIzaSyDEid2JR2qNEb9WiztnrvtWM-P2_Z7d8ko",
             authDomain: "xinyue-brunch.firebaseapp.com",
             projectId: "xinyue-brunch",
             storageBucket: "xinyue-brunch.firebasestorage.app",
             messagingSenderId: "422971767605",
             appId: "1:422971767605:web:f0678e61b023fc4ac56a7c"
-        };
+        });
+
+        // 網域合法性檢查（防止原始碼被複製到未授權網域盜用）
+        const currentHost = window.location.hostname;
+        const isAuthorizedHost = !currentHost || ALLOWED_DOMAINS.some(d => currentHost === d || currentHost.endsWith("." + d));
+        if (!isAuthorizedHost) {
+            document.body.innerHTML = '<div style="padding:40px;text-align:center;font-family:sans-serif;"><h2>⚠️ 未授權的網域存取</h2><p>此系統僅限於官方授權網域運行。</p></div>';
+            throw new Error("Unauthorized domain");
+        }
 
         // 【店家收款帳號設定區】請在此修改為您店裡的真實收款銀行與帳號
-        window.STORE_PAYMENT_INFO = {
+        window.STORE_PAYMENT_INFO = Object.freeze({
             bankName: "822 中國信託 (昕悅早午餐)",
             accountNumber: "000-1234567890"
-        };
+        });
 
         // 判斷是否為系統測試環境或已填入正式金鑰
         const rawConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : MY_FIREBASE_CONFIG;
@@ -871,6 +902,12 @@
         window.soldOutItems = {}; // 儲存目前已售完的餐點名稱對照表 { "卡拉雞腿+蛋": true }
         window.myLocalOrders = []; // 儲存客人本機送出的所有訂單紀錄
         window.selectedCustomerOrderId = null;
+        window.systemLicense = {
+            isActive: true,
+            expireDate: '2027-12-31',
+            autoLockOnExpire: true,
+            lockMessage: '您的系統月租服務授權已到期，請聯繫系統服務專員辦理續約以恢復即時接單功能。'
+        };
         let isInitialLoad = true;
 
         // 從瀏覽器記憶讀取客人的歷史訂單 ID（重新整理網頁也不會遺失）
@@ -926,7 +963,24 @@
                 if (user) {
                     subscribeToRealtimeOrders();
                     subscribeToSoldOutStatus();
+                    subscribeToSystemLicense();
                 }
+            });
+        }
+
+        // 即時監聽總部控制中心的「店家授權與到期狀態」
+        function subscribeToSystemLicense() {
+            if (!currentUser || !db) return;
+            const licenseDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'hq_stores', STORE_ID);
+            onSnapshot(licenseDocRef, (docSnap) => {
+                if (docSnap.exists()) {
+                    window.systemLicense = Object.freeze({ ...window.systemLicense, ...docSnap.data() });
+                }
+                if (window.onSystemLicenseUpdated) {
+                    window.onSystemLicenseUpdated();
+                }
+            }, (error) => {
+                console.error("監聽系統授權狀態失敗:", error);
             });
         }
 
@@ -1047,6 +1101,10 @@
 
         // 客人送出線上訂單至雲端
         window.submitOnlineOrder = async function() {
+            if (window.isSystemServiceSuspended && window.isSystemServiceSuspended()) {
+                window.showToast('抱歉，本系統線上點餐授權維護中，請直接致電 03-5262699 訂餐！');
+                return;
+            }
             if (window.cart.length === 0) {
                 window.showToast('請先將餐點加入點餐單喔！');
                 return;
@@ -2042,6 +2100,78 @@
             } else {
                 document.getElementById('owner-login-error').classList.remove('hidden');
             }
+        }
+
+        // ================= 系統授權風控與防竄改守護邏輯 =================
+        const checkServiceSuspended = Object.freeze(function() {
+            const lic = window.systemLicense || { isActive: true };
+            if (!lic.isActive) return true;
+            if (lic.autoLockOnExpire && lic.expireDate) {
+                const todayStr = new Date().toISOString().split('T')[0];
+                if (todayStr > lic.expireDate) return true;
+            }
+            return false;
+        });
+        Object.defineProperty(window, 'isSystemServiceSuspended', {
+            value: checkServiceSuspended,
+            writable: false,
+            configurable: false
+        });
+
+        // 啟動 DOM 防竄改守護器：防止工程師用 F12 強行移除或隱藏鎖定視窗
+        (function startTamperGuard() {
+            const observer = new MutationObserver(() => {
+                if (window.isSystemServiceSuspended()) {
+                    const modal = document.getElementById('license-locked-modal');
+                    const dashboard = document.getElementById('owner-dashboard');
+                    if (dashboard && !dashboard.classList.contains('hidden')) {
+                        if (!modal || modal.classList.contains('hidden') || modal.style.display === 'none') {
+                            document.body.innerHTML = `
+                                <div style="min-height:100vh;background:#1f0508;color:#fcfaf7;display:flex;align-items:center;justify-content:center;padding:24px;text-align:center;font-family:sans-serif;">
+                                    <div style="max-width:420px;background:#fffcf7;color:#33060a;padding:32px;border-radius:24px;border:2px solid #f43f5e;">
+                                        <div style="font-size:40px;margin-bottom:12px;">🔒</div>
+                                        <h2 style="font-size:22px;font-weight:900;margin-bottom:8px;">系統服務授權已暫停</h2>
+                                        <p style="font-size:14px;color:#57534e;line-height:1.6;">偵測到授權已到期或異常操作，請聯繫系統服務專員辦理續約。</p>
+                                    </div>
+                                </div>
+                            `;
+                        }
+                    }
+                }
+            });
+            observer.observe(document.documentElement, { childList: true, subtree: true, attributes: true });
+        })();
+
+        window.onSystemLicenseUpdated = function() {
+            const lic = window.systemLicense || {};
+            const isSuspended = window.isSystemServiceSuspended();
+
+            // 1. 剩餘 5 天內顯示黃色溫和預警橫幅
+            const warningBanner = document.getElementById('owner-license-warning-banner');
+            const warningText = document.getElementById('owner-license-warning-text');
+            if (warningBanner && lic.expireDate && !isSuspended) {
+                const diffMs = new Date(lic.expireDate) - new Date();
+                const diffDays = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
+                if (diffDays <= 5 && diffDays >= 0) {
+                    warningText.textContent = `⚠️ 溫馨提醒：您的系統服務授權將於 ${lic.expireDate}（剩餘 ${diffDays} 天）到期，請聯繫服務專員辦理續約以免影響接單。`;
+                    warningBanner.classList.remove('hidden');
+                } else {
+                    warningBanner.classList.add('hidden');
+                }
+            } else if (warningBanner) {
+                warningBanner.classList.add('hidden');
+            }
+
+            // 2. 若業主正在後台操作時被遠端停權，立即彈出鎖定視窗
+            const ownerDash = document.getElementById('owner-dashboard');
+            if (isSuspended && ownerDash && !ownerDash.classList.contains('hidden')) {
+                document.getElementById('license-locked-reason').textContent = lic.lockMessage || '您的系統服務授權已到期，請聯繫服務專員續約。';
+                document.getElementById('license-locked-modal').classList.remove('hidden');
+            }
+        };
+
+        function closeLicenseLockedModal() {
+            document.getElementById('license-locked-modal').classList.add('hidden');
         }
 
         function enterOwnerMode() {
