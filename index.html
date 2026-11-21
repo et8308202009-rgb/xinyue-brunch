@@ -3,6 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="昕悅接單後台">
+    <meta name="theme-color" content="#33060a">
+    <link id="pwa-manifest-link" rel="manifest" href="manifest.json">
+    <link rel="apple-touch-icon" href="apple-touch-icon.png">
     <title>昕悅早午餐 Xin Yue Brunch | 新鮮食材．用心製作</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -152,6 +158,9 @@
                     <h2 class="font-serif text-lg sm:text-2xl font-bold text-gold-400">店家全方位營運管理後台</h2>
                 </div>
                 <div class="flex items-center gap-2 sm:gap-3">
+                    <button onclick="triggerPwaInstallOrGuide()" id="pwa-install-btn" class="px-3 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold shadow-sm transition flex items-center gap-1">
+                        <span>📲 安裝桌面接單 App</span>
+                    </button>
                     <button onclick="playNotificationBell()" class="px-3 py-2 rounded-xl bg-wine-800 hover:bg-wine-700 text-cream-100 border border-gold-400/30 text-xs font-medium transition">
                         🔔 測試提示音
                     </button>
@@ -188,6 +197,21 @@
                         <button onclick="setOrderDatePreset('today')" class="px-2.5 py-1 rounded-lg bg-wine-800 hover:bg-wine-700 text-cream-100 border border-gold-400/30">今日</button>
                         <button onclick="setOrderDatePreset('week')" class="px-2.5 py-1 rounded-lg bg-wine-800 hover:bg-wine-700 text-cream-100 border border-gold-400/30">近7日</button>
                         <button onclick="setOrderDatePreset('all')" class="px-2.5 py-1 rounded-lg bg-gold-500 text-wine-950 font-bold">全部時間</button>
+                    </div>
+                </div>
+
+                <div class="p-3.5 rounded-2xl bg-wine-900/50 border border-gold-400/25 flex flex-wrap items-center justify-between gap-3 text-xs">
+                    <div class="flex items-center gap-2 text-cream-200/85">
+                        <span class="text-gold-400 font-bold">🚀 全通路整合演示：</span>
+                        <span>產生一筆測試用的外送平台訂單，用來確認看板與報表會怎麼呈現</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <button onclick="simulateDeliveryOrder('ubereats')" class="px-3 py-1.5 rounded-xl bg-emerald-700 hover:bg-emerald-600 text-white font-bold shadow-sm transition flex items-center gap-1">
+                            <span>🛵 模擬 UberEats 進單</span>
+                        </button>
+                        <button onclick="simulateDeliveryOrder('foodpanda')" class="px-3 py-1.5 rounded-xl bg-pink-600 hover:bg-pink-500 text-white font-bold shadow-sm transition flex items-center gap-1">
+                            <span>🐼 模擬 Foodpanda 進單</span>
+                        </button>
                     </div>
                 </div>
 
@@ -675,7 +699,7 @@
                 </div>
 
                 <div class="pt-8 flex flex-col sm:flex-row items-center justify-between text-xs text-cream-200/50 gap-4">
-                    <p>© 2026 <span id="copyright-store-name">昕悅早午餐 Xin Yue Brunch</span>. All Rights Reserved.</p>
+                    <p>© 2026 <span id="copyright-store-name">昕悅早午餐 Xin Yue Brunch</span>. All Rights Reserved. <span class="ml-1.5 px-2 py-0.5 rounded bg-wine-900 text-gold-400/80 font-mono text-[10px]">v2.6.0</span></p>
                     <div class="flex items-center gap-4">
                         <span class="tracking-widest text-gold-400/70">FRESH / BRUNCH / GOOD MOOD ♡</span>
                         <button onclick="openOwnerLoginModal()" class="px-3 py-1 rounded-full bg-wine-900/80 hover:bg-wine-800 text-cream-200/70 hover:text-gold-400 border border-wine-700/60 transition flex items-center gap-1">
@@ -805,13 +829,24 @@
 
                     <div class="pt-2 border-t border-cream-300/80 space-y-2.5">
                         <label class="block text-xs font-bold text-wine-900">付款方式 *</label>
-                        <div class="grid grid-cols-2 gap-2">
+                        <div id="payment-methods-grid" class="grid grid-cols-2 gap-2">
                             <button type="button" onclick="setPaymentMethod('counter')" id="pay-btn-counter" class="py-2 px-2.5 rounded-xl text-xs font-bold bg-wine-800 text-cream-50 border border-wine-800 transition text-center">
                                 💵 到店櫃檯付款
                             </button>
                             <button type="button" onclick="setPaymentMethod('transfer')" id="pay-btn-transfer" class="py-2 px-2.5 rounded-xl text-xs font-medium bg-white text-stone-700 border border-cream-300 hover:bg-cream-50 transition text-center">
                                 💳 線上轉帳先付款
                             </button>
+                        </div>
+
+                        <!-- 第三方行動支付提示框 -->
+                        <div id="thirdparty-pay-box" class="hidden p-3 rounded-xl bg-emerald-50/90 border border-emerald-300 space-y-1.5 text-xs">
+                            <div class="flex items-center justify-between">
+                                <span id="thirdparty-pay-title" class="font-bold text-emerald-900">💚 LINE Pay 線上付款</span>
+                                <span class="px-2 py-0.5 rounded-full bg-emerald-600 text-white text-[10px] font-bold">需店家確認入帳</span>
+                            </div>
+                            <p class="text-emerald-800/85 text-[11px] leading-relaxed">
+                                送出訂單後，請依店家指示完成付款（掃碼或轉帳）。店家確認收到款項後，才會將此單標記為「已收款」並優先製作。
+                            </p>
                         </div>
 
                         <div id="transfer-info-box" class="hidden p-3 rounded-xl bg-white border border-gold-400/60 space-y-2.5 text-xs">
@@ -1233,6 +1268,7 @@
             const note = document.getElementById('order-note').value.trim();
             const paymentMethod = window.paymentMethod || 'counter';
             const transferLast5 = document.getElementById('transfer-last5').value.trim();
+            const isThirdPartyPay = ['linepay', 'jkopay', 'pxpay', 'ipass', 'twqr', 'easywallet', 'opay', 'ecpay', 'newebpay'].includes(paymentMethod);
 
             if (window.diningType === '外帶' && customerPhone.length < 8) {
                 window.showToast('外帶請務必填寫聯絡電話，方便餐點完成或售完時通知您喔！');
@@ -1249,6 +1285,7 @@
             const totalPrice = window.cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
             const orderPayload = {
                 orderNumber: String(Math.floor(100 + Math.random() * 900)),
+                source: 'web',
                 customerName,
                 customerPhone,
                 diningType: window.diningType || '內用',
@@ -1276,13 +1313,13 @@
                 window.toggleCart();
                 window.refreshCustomerOrdersUI();
                 window.openCustomerOrderModal();
-                window.showToast('訂單已建立！隨時可點右上角「我的訂單」查看');
+                window.showToast(isThirdPartyPay ? '訂單已建立，請依店家指示完成付款' : '訂單已建立！隨時可點右上角「我的訂單」查看');
                 return;
             }
 
             const btn = document.getElementById('submit-order-btn');
             btn.disabled = true;
-            btn.innerHTML = '<span>訂單傳送中...</span>';
+            btn.innerHTML = isThirdPartyPay ? '<span>訂單傳送中...</span>' : '<span>訂單傳送中...</span>';
             try {
                 const docRef = await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'orders'), orderPayload);
                 saveOrderIdToDevice(docRef.id);
@@ -1292,7 +1329,7 @@
                 window.toggleCart();
                 window.refreshCustomerOrdersUI();
                 window.openCustomerOrderModal();
-                window.showToast('訂單已成功送出！店家已收到通知');
+                window.showToast(isThirdPartyPay ? '訂單已送出！請完成付款，店家確認入帳後即安排製作' : '訂單已成功送出！店家已收到通知');
             } catch (error) {
                 console.error("送出訂單失敗:", error);
                 window.showToast('訂單傳送失敗，請檢查網路或直接致電店舖');
@@ -1331,6 +1368,51 @@
             }
             await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'orders', orderId));
             window.showToast('🗑️ 已從雲端永久刪除此筆訂單');
+        };
+
+        window.simulateDeliveryOrder = async function(platform) {
+            const isUE = platform === 'ubereats';
+            const autoAccept = isUE ? !!window.storeProfileState?.ueAutoAccept : !!window.storeProfileState?.fpAutoAccept;
+            const sampleOrders = isUE
+                ? [{ name: '厚切牛肉堡+蛋', price: 80, qty: 1 }, { name: '鮮奶茶 (大/冰)', price: 30, qty: 1 }]
+                : [{ name: '卡拉雞腿+蛋', price: 70, qty: 1 }, { name: '起司蛋餅', price: 40, qty: 1 }, { name: '紅茶 (大/冰)', price: 25, qty: 1 }];
+            const totalPrice = sampleOrders.reduce((s, i) => s + i.price * i.qty, 0);
+            const prefix = isUE ? 'UE-' : 'FP-';
+            const orderPayload = {
+                orderNumber: prefix + String(Math.floor(1000 + Math.random() * 9000)),
+                source: platform,
+                customerName: isUE ? 'UberEats 顧客 (測試)' : 'Foodpanda 顧客 (測試)',
+                customerPhone: '平台隱碼轉接',
+                diningType: isUE ? 'UberEats 外送' : 'Foodpanda 外送',
+                tableNumber: '',
+                pickupTime: '外送員預計 15 分鐘後取餐',
+                note: '⚠️ 測試訂單（模擬外送平台進單），請於測試後刪除',
+                paymentMethod: 'platform_paid',
+                transferLast5: '',
+                paymentStatus: 'paid',
+                items: sampleOrders,
+                totalPrice,
+                status: autoAccept ? 'preparing' : 'pending',
+                cancelReason: '',
+                createdAt: Date.now(),
+                timeString: new Date().toLocaleTimeString('zh-TW', { hour: '2-digit', minute: '2-digit' })
+            };
+
+            if (!isFirebaseConfigured || !db || !currentUser) {
+                allCloudOrders.unshift(Object.assign({ id: 'sim-' + Date.now() }, orderPayload));
+                if (window.playNotificationBell) window.playNotificationBell();
+                if (window.renderOwnerOrders) window.renderOwnerOrders(allCloudOrders);
+                window.showToast(isUE ? '🛵 已產生模擬 UberEats 訂單（未連線雲端）' : '🐼 已產生模擬 Foodpanda 訂單（未連線雲端）');
+                return;
+            }
+            try {
+                await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'orders'), orderPayload);
+                if (window.playNotificationBell) window.playNotificationBell();
+                window.showToast(isUE ? '🛵 模擬 UberEats 訂單已送進看板（測試用）' : '🐼 模擬 Foodpanda 訂單已送進看板（測試用）');
+            } catch (e) {
+                console.error(e);
+                window.showToast('模擬訂單建立失敗，請查看 Console');
+            }
         };
 
         window.getCloudOrders = () => allCloudOrders;
@@ -1563,6 +1645,35 @@
             fpClientId: '',
             fpClientSecret: '',
             fpAutoAccept: false,
+            linepayEnabled: false,
+            linepayChannelId: '',
+            linepayChannelSecret: '',
+            jkopayEnabled: false,
+            jkopayMerchantId: '',
+            jkopayApiKey: '',
+            pxpayEnabled: false,
+            pxpayMerchantId: '',
+            pxpaySecretKey: '',
+            ipassEnabled: false,
+            ipassMerchantId: '',
+            ipassSecretKey: '',
+            twqrEnabled: false,
+            twqrMerchantId: '',
+            twqrTerminalId: '',
+            easywalletEnabled: false,
+            easywalletMerchantId: '',
+            easywalletSecretKey: '',
+            opayEnabled: false,
+            opayMerchantId: '',
+            opayHashKey: '',
+            ecpayEnabled: false,
+            ecpayMerchantId: '',
+            ecpayHashKey: '',
+            ecpayHashIv: '',
+            newebpayEnabled: false,
+            newebpayMerchantId: '',
+            newebpayHashKey: '',
+            newebpayHashIv: '',
             taxId: '',
             invoicePrefix: 'XY'
         };
@@ -1641,6 +1752,159 @@
                 formEl.insertAdjacentHTML('afterbegin', cardHtml);
             }
 
+            // 注入第三方支付設定卡片（預設全部關閉，確定有真實金流帳號再開啟）
+            if (formEl && !document.getElementById('thirdparty-payment-settings-card')) {
+                const payCardHtml = `
+                    <div id="thirdparty-payment-settings-card" class="rounded-3xl bg-[#fffcf7] text-wine-950 p-6 border border-gold-400/50 shadow-lg space-y-5">
+                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-wine-800/15">
+                            <div>
+                                <h3 class="font-serif text-lg font-bold text-wine-900">💳 台灣 9 大行動支付與金流 API 設定</h3>
+                                <p class="text-xs text-stone-500 mt-0.5">勾選啟用後，客人點餐單會多出該付款選項</p>
+                            </div>
+                        </div>
+
+                        <div class="p-3 rounded-2xl bg-amber-50 border border-amber-300 text-[11px] text-amber-900 leading-relaxed">
+                            ⚠️ <strong>重要：目前尚未串接真實金流。</strong>這些欄位只是先把資料存起來，<strong>不會真的向客人收款</strong>。
+                            客人選用後，訂單會標記為「待確認入帳」，請您自行核對 LINE Pay / 銀行 App 的入帳紀錄，再按訂單上的「✓ 標記已收款」。
+                            要做到自動扣款需要接上各家金流商的伺服器端 API（GitHub Pages 是靜態網站，做不到這一段）。
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5">
+                            <div class="p-3.5 rounded-2xl bg-emerald-50/70 border border-emerald-200 space-y-2.5">
+                                <div class="flex items-center justify-between">
+                                    <span class="px-2.5 py-0.5 rounded-full bg-[#06C755] text-white text-[11px] font-black">LINE Pay</span>
+                                    <div class="flex items-center gap-2">
+                                        <button type="button" onclick="testPaymentGateway('LINE Pay', 'cfg-lp-channel-id')" class="px-2 py-0.5 rounded bg-[#06C755] text-white text-[10px] font-bold">測試</button>
+                                        <input type="checkbox" id="cfg-lp-enabled" onchange="markOwnerHasUnsavedChanges()" class="w-4 h-4 accent-[#06C755] cursor-pointer">
+                                    </div>
+                                </div>
+                                <div class="grid grid-cols-2 gap-2 text-xs">
+                                    <input type="text" id="cfg-lp-channel-id" oninput="markOwnerHasUnsavedChanges()" placeholder="Channel ID" class="w-full px-2.5 py-1.5 rounded-lg bg-white border border-emerald-200 font-mono text-[11px]">
+                                    <input type="password" id="cfg-lp-channel-secret" oninput="markOwnerHasUnsavedChanges()" placeholder="Channel Secret" class="w-full px-2.5 py-1.5 rounded-lg bg-white border border-emerald-200 font-mono text-[11px]">
+                                </div>
+                            </div>
+
+                            <div class="p-3.5 rounded-2xl bg-orange-50/70 border border-orange-200 space-y-2.5">
+                                <div class="flex items-center justify-between">
+                                    <span class="px-2.5 py-0.5 rounded-full bg-orange-600 text-white text-[11px] font-black">街口支付</span>
+                                    <div class="flex items-center gap-2">
+                                        <button type="button" onclick="testPaymentGateway('街口支付', 'cfg-jko-merchant-id')" class="px-2 py-0.5 rounded bg-orange-600 text-white text-[10px] font-bold">測試</button>
+                                        <input type="checkbox" id="cfg-jko-enabled" onchange="markOwnerHasUnsavedChanges()" class="w-4 h-4 accent-orange-600 cursor-pointer">
+                                    </div>
+                                </div>
+                                <div class="grid grid-cols-2 gap-2 text-xs">
+                                    <input type="text" id="cfg-jko-merchant-id" oninput="markOwnerHasUnsavedChanges()" placeholder="Store ID" class="w-full px-2.5 py-1.5 rounded-lg bg-white border border-orange-200 font-mono text-[11px]">
+                                    <input type="password" id="cfg-jko-api-key" oninput="markOwnerHasUnsavedChanges()" placeholder="API Key" class="w-full px-2.5 py-1.5 rounded-lg bg-white border border-orange-200 font-mono text-[11px]">
+                                </div>
+                            </div>
+
+                            <div class="p-3.5 rounded-2xl bg-blue-50/70 border border-blue-200 space-y-2.5">
+                                <div class="flex items-center justify-between">
+                                    <span class="px-2.5 py-0.5 rounded-full bg-blue-700 text-white text-[11px] font-black">全支付 PX Pay+</span>
+                                    <div class="flex items-center gap-2">
+                                        <button type="button" onclick="testPaymentGateway('全支付', 'cfg-px-merchant-id')" class="px-2 py-0.5 rounded bg-blue-700 text-white text-[10px] font-bold">測試</button>
+                                        <input type="checkbox" id="cfg-px-enabled" onchange="markOwnerHasUnsavedChanges()" class="w-4 h-4 accent-blue-700 cursor-pointer">
+                                    </div>
+                                </div>
+                                <div class="grid grid-cols-2 gap-2 text-xs">
+                                    <input type="text" id="cfg-px-merchant-id" oninput="markOwnerHasUnsavedChanges()" placeholder="特店代號" class="w-full px-2.5 py-1.5 rounded-lg bg-white border border-blue-200 font-mono text-[11px]">
+                                    <input type="password" id="cfg-px-secret-key" oninput="markOwnerHasUnsavedChanges()" placeholder="串接密鑰" class="w-full px-2.5 py-1.5 rounded-lg bg-white border border-blue-200 font-mono text-[11px]">
+                                </div>
+                            </div>
+
+                            <div class="p-3.5 rounded-2xl bg-teal-50/70 border border-teal-200 space-y-2.5">
+                                <div class="flex items-center justify-between">
+                                    <span class="px-2.5 py-0.5 rounded-full bg-teal-600 text-white text-[11px] font-black">iPASS MONEY</span>
+                                    <div class="flex items-center gap-2">
+                                        <button type="button" onclick="testPaymentGateway('iPASS MONEY', 'cfg-ipass-merchant-id')" class="px-2 py-0.5 rounded bg-teal-600 text-white text-[10px] font-bold">測試</button>
+                                        <input type="checkbox" id="cfg-ipass-enabled" onchange="markOwnerHasUnsavedChanges()" class="w-4 h-4 accent-teal-600 cursor-pointer">
+                                    </div>
+                                </div>
+                                <div class="grid grid-cols-2 gap-2 text-xs">
+                                    <input type="text" id="cfg-ipass-merchant-id" oninput="markOwnerHasUnsavedChanges()" placeholder="一卡通特店ID" class="w-full px-2.5 py-1.5 rounded-lg bg-white border border-teal-200 font-mono text-[11px]">
+                                    <input type="password" id="cfg-ipass-secret-key" oninput="markOwnerHasUnsavedChanges()" placeholder="API Secret" class="w-full px-2.5 py-1.5 rounded-lg bg-white border border-teal-200 font-mono text-[11px]">
+                                </div>
+                            </div>
+
+                            <div class="p-3.5 rounded-2xl bg-rose-50/70 border border-rose-200 space-y-2.5">
+                                <div class="flex items-center justify-between">
+                                    <span class="px-2.5 py-0.5 rounded-full bg-rose-700 text-white text-[11px] font-black">台灣 Pay (TWQR)</span>
+                                    <div class="flex items-center gap-2">
+                                        <button type="button" onclick="testPaymentGateway('台灣 Pay', 'cfg-twqr-merchant-id')" class="px-2 py-0.5 rounded bg-rose-700 text-white text-[10px] font-bold">測試</button>
+                                        <input type="checkbox" id="cfg-twqr-enabled" onchange="markOwnerHasUnsavedChanges()" class="w-4 h-4 accent-rose-700 cursor-pointer">
+                                    </div>
+                                </div>
+                                <div class="grid grid-cols-2 gap-2 text-xs">
+                                    <input type="text" id="cfg-twqr-merchant-id" oninput="markOwnerHasUnsavedChanges()" placeholder="TWQR 特店代號" class="w-full px-2.5 py-1.5 rounded-lg bg-white border border-rose-200 font-mono text-[11px]">
+                                    <input type="text" id="cfg-twqr-terminal-id" oninput="markOwnerHasUnsavedChanges()" placeholder="端末機代號" class="w-full px-2.5 py-1.5 rounded-lg bg-white border border-rose-200 font-mono text-[11px]">
+                                </div>
+                            </div>
+
+                            <div class="p-3.5 rounded-2xl bg-cyan-50/70 border border-cyan-200 space-y-2.5">
+                                <div class="flex items-center justify-between">
+                                    <span class="px-2.5 py-0.5 rounded-full bg-cyan-700 text-white text-[11px] font-black">悠遊付 EasyWallet</span>
+                                    <div class="flex items-center gap-2">
+                                        <button type="button" onclick="testPaymentGateway('悠遊付', 'cfg-ew-merchant-id')" class="px-2 py-0.5 rounded bg-cyan-700 text-white text-[10px] font-bold">測試</button>
+                                        <input type="checkbox" id="cfg-ew-enabled" onchange="markOwnerHasUnsavedChanges()" class="w-4 h-4 accent-cyan-700 cursor-pointer">
+                                    </div>
+                                </div>
+                                <div class="grid grid-cols-2 gap-2 text-xs">
+                                    <input type="text" id="cfg-ew-merchant-id" oninput="markOwnerHasUnsavedChanges()" placeholder="悠遊付商店ID" class="w-full px-2.5 py-1.5 rounded-lg bg-white border border-cyan-200 font-mono text-[11px]">
+                                    <input type="password" id="cfg-ew-secret-key" oninput="markOwnerHasUnsavedChanges()" placeholder="Secret Key" class="w-full px-2.5 py-1.5 rounded-lg bg-white border border-cyan-200 font-mono text-[11px]">
+                                </div>
+                            </div>
+
+                            <div class="p-3.5 rounded-2xl bg-amber-50/70 border border-amber-200 space-y-2.5">
+                                <div class="flex items-center justify-between">
+                                    <span class="px-2.5 py-0.5 rounded-full bg-amber-600 text-white text-[11px] font-black">歐付寶 O'Pay</span>
+                                    <div class="flex items-center gap-2">
+                                        <button type="button" onclick="testPaymentGateway('歐付寶', 'cfg-op-merchant-id')" class="px-2 py-0.5 rounded bg-amber-600 text-white text-[10px] font-bold">測試</button>
+                                        <input type="checkbox" id="cfg-op-enabled" onchange="markOwnerHasUnsavedChanges()" class="w-4 h-4 accent-amber-600 cursor-pointer">
+                                    </div>
+                                </div>
+                                <div class="grid grid-cols-2 gap-2 text-xs">
+                                    <input type="text" id="cfg-op-merchant-id" oninput="markOwnerHasUnsavedChanges()" placeholder="歐付寶特店編號" class="w-full px-2.5 py-1.5 rounded-lg bg-white border border-amber-200 font-mono text-[11px]">
+                                    <input type="password" id="cfg-op-hash-key" oninput="markOwnerHasUnsavedChanges()" placeholder="HashKey" class="w-full px-2.5 py-1.5 rounded-lg bg-white border border-amber-200 font-mono text-[11px]">
+                                </div>
+                            </div>
+
+                            <div class="p-3.5 rounded-2xl bg-sky-50/70 border border-sky-200 space-y-2.5">
+                                <div class="flex items-center justify-between">
+                                    <span class="px-2.5 py-0.5 rounded-full bg-sky-700 text-white text-[11px] font-black">綠界 ECPay</span>
+                                    <div class="flex items-center gap-2">
+                                        <button type="button" onclick="testPaymentGateway('綠界 ECPay', 'cfg-ec-merchant-id')" class="px-2 py-0.5 rounded bg-sky-700 text-white text-[10px] font-bold">測試</button>
+                                        <input type="checkbox" id="cfg-ec-enabled" onchange="markOwnerHasUnsavedChanges()" class="w-4 h-4 accent-sky-700 cursor-pointer">
+                                    </div>
+                                </div>
+                                <div class="grid grid-cols-3 gap-1.5 text-xs">
+                                    <input type="text" id="cfg-ec-merchant-id" oninput="markOwnerHasUnsavedChanges()" placeholder="特店編號" class="w-full px-2 py-1.5 rounded-lg bg-white border border-sky-200 font-mono text-[11px]">
+                                    <input type="password" id="cfg-ec-hash-key" oninput="markOwnerHasUnsavedChanges()" placeholder="HashKey" class="w-full px-2 py-1.5 rounded-lg bg-white border border-sky-200 font-mono text-[11px]">
+                                    <input type="password" id="cfg-ec-hash-iv" oninput="markOwnerHasUnsavedChanges()" placeholder="HashIV" class="w-full px-2 py-1.5 rounded-lg bg-white border border-sky-200 font-mono text-[11px]">
+                                </div>
+                            </div>
+
+                            <div class="p-3.5 rounded-2xl bg-indigo-50/70 border border-indigo-200 space-y-2.5">
+                                <div class="flex items-center justify-between">
+                                    <span class="px-2.5 py-0.5 rounded-full bg-indigo-700 text-white text-[11px] font-black">藍新 NewebPay</span>
+                                    <div class="flex items-center gap-2">
+                                        <button type="button" onclick="testPaymentGateway('藍新 NewebPay', 'cfg-nb-merchant-id')" class="px-2 py-0.5 rounded bg-indigo-700 text-white text-[10px] font-bold">測試</button>
+                                        <input type="checkbox" id="cfg-nb-enabled" onchange="markOwnerHasUnsavedChanges()" class="w-4 h-4 accent-indigo-700 cursor-pointer">
+                                    </div>
+                                </div>
+                                <div class="grid grid-cols-3 gap-1.5 text-xs">
+                                    <input type="text" id="cfg-nb-merchant-id" oninput="markOwnerHasUnsavedChanges()" placeholder="商店代號" class="w-full px-2 py-1.5 rounded-lg bg-white border border-indigo-200 font-mono text-[11px]">
+                                    <input type="password" id="cfg-nb-hash-key" oninput="markOwnerHasUnsavedChanges()" placeholder="HashKey" class="w-full px-2 py-1.5 rounded-lg bg-white border border-indigo-200 font-mono text-[11px]">
+                                    <input type="password" id="cfg-nb-hash-iv" oninput="markOwnerHasUnsavedChanges()" placeholder="HashIV" class="w-full px-2 py-1.5 rounded-lg bg-white border border-indigo-200 font-mono text-[11px]">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                const lastCard = formEl.lastElementChild;
+                if (lastCard) formEl.insertBefore(document.createRange().createContextualFragment(payCardHtml), lastCard);
+                else formEl.insertAdjacentHTML('beforeend', payCardHtml);
+            }
+
             window.applyDynamicStoreProfile(window.storeProfileState);
             populateStoreSettingsForm();
             renderCategoryTabs();
@@ -1648,6 +1912,7 @@
             updateCartUI();
             updateSoldOutBadge();
             window.refreshCustomerOrdersUI();
+            initPwaAppSupport();
 
             const searchInput = document.getElementById('menu-search');
             if (searchInput) {
@@ -1706,8 +1971,71 @@
                     annBar.classList.add('hidden');
                 }
             }
+
+            renderDynamicPaymentOptions();
         };
 
+        const PAYMENT_METHOD_META = {
+            counter: { label: '💵 到店櫃檯付款', title: '到店櫃檯現金付款' },
+            transfer: { label: '💳 線上轉帳先付款', title: '銀行帳號轉帳付款' },
+            linepay: { label: '💚 LINE Pay', title: '💚 LINE Pay 行動支付' },
+            jkopay: { label: '🧡 街口支付', title: '🧡 街口支付 JKOPay' },
+            pxpay: { label: '🔵 全支付 PX Pay+', title: '🔵 全支付 PX Pay Plus' },
+            ipass: { label: '🟢 iPASS MONEY', title: '🟢 iPASS MONEY 一卡通支付' },
+            twqr: { label: '🇹🇼 台灣 Pay', title: '🇹🇼 台灣 Pay (TWQR) 行動支付' },
+            easywallet: { label: '💠 悠遊付', title: '💠 悠遊付 EasyWallet' },
+            opay: { label: '🟡 歐付寶 O\'Pay', title: '🟡 歐付寶 O\'Pay 第三方支付' },
+            ecpay: { label: '💙 綠界金流', title: '💙 綠界 ECPay 線上刷卡 / 行動支付' },
+            newebpay: { label: '🟣 藍新金流', title: '🟣 藍新 NewebPay 線上支付' }
+        };
+
+        const THIRD_PARTY_PAY_METHODS = ['linepay', 'jkopay', 'pxpay', 'ipass', 'twqr', 'easywallet', 'opay', 'ecpay', 'newebpay'];
+
+        // 依店舖設定動態產生前台付款方式按鈕（未啟用的金流不會顯示）
+        function renderDynamicPaymentOptions() {
+            const grid = document.getElementById('payment-methods-grid');
+            if (!grid) return;
+            const p = window.storeProfileState || {};
+            const available = ['counter', 'transfer'];
+            if (p.linepayEnabled) available.push('linepay');
+            if (p.jkopayEnabled) available.push('jkopay');
+            if (p.pxpayEnabled) available.push('pxpay');
+            if (p.ipassEnabled) available.push('ipass');
+            if (p.twqrEnabled) available.push('twqr');
+            if (p.easywalletEnabled) available.push('easywallet');
+            if (p.opayEnabled) available.push('opay');
+            if (p.ecpayEnabled) available.push('ecpay');
+            if (p.newebpayEnabled) available.push('newebpay');
+
+            if (!available.includes(window.paymentMethod)) window.paymentMethod = 'counter';
+
+            grid.innerHTML = available.map(key => {
+                const isSel = window.paymentMethod === key;
+                const cls = isSel
+                    ? 'py-2 px-2.5 rounded-xl text-xs font-bold bg-wine-800 text-cream-50 border border-wine-800 transition text-center shadow-xs'
+                    : 'py-2 px-2.5 rounded-xl text-xs font-medium bg-white text-stone-700 border border-cream-300 hover:bg-cream-50 transition text-center';
+                return `<button type="button" onclick="setPaymentMethod('${key}')" id="pay-btn-${key}" class="${cls}">${PAYMENT_METHOD_META[key].label}</button>`;
+            }).join('');
+
+            const transferBox = document.getElementById('transfer-info-box');
+            const thirdpartyBox = document.getElementById('thirdparty-pay-box');
+            const thirdpartyTitle = document.getElementById('thirdparty-pay-title');
+            const isThirdParty = THIRD_PARTY_PAY_METHODS.includes(window.paymentMethod);
+            if (transferBox) transferBox.classList.toggle('hidden', window.paymentMethod !== 'transfer');
+            if (thirdpartyBox) thirdpartyBox.classList.toggle('hidden', !isThirdParty);
+            if (isThirdParty && thirdpartyTitle) {
+                thirdpartyTitle.textContent = PAYMENT_METHOD_META[window.paymentMethod].title;
+            }
+        }
+
+        function testPaymentGateway(gatewayName, idInputId) {
+            const merchantVal = document.getElementById(idInputId)?.value.trim();
+            if (!merchantVal) {
+                showToast(`請先填入 ${gatewayName} 的特店/頻道代號再測試連線喔！`);
+                return;
+            }
+            showToast(`ℹ️ ${gatewayName}（${merchantVal}）欄位已保存。實際串接需金流商伺服器端 API，目前僅儲存設定。`);
+        }
         window.isStoreClosedToday = function() {
             const p = window.storeProfileState || {};
             if (p.forceClosedToday) return true;
@@ -1785,6 +2113,35 @@
                 fpClientId: document.getElementById('cfg-fp-client-id')?.value.trim() || '',
                 fpClientSecret: document.getElementById('cfg-fp-client-secret')?.value.trim() || '',
                 fpAutoAccept: !!document.getElementById('cfg-fp-auto-accept')?.checked,
+                linepayEnabled: !!document.getElementById('cfg-lp-enabled')?.checked,
+                linepayChannelId: document.getElementById('cfg-lp-channel-id')?.value.trim() || '',
+                linepayChannelSecret: document.getElementById('cfg-lp-channel-secret')?.value.trim() || '',
+                jkopayEnabled: !!document.getElementById('cfg-jko-enabled')?.checked,
+                jkopayMerchantId: document.getElementById('cfg-jko-merchant-id')?.value.trim() || '',
+                jkopayApiKey: document.getElementById('cfg-jko-api-key')?.value.trim() || '',
+                pxpayEnabled: !!document.getElementById('cfg-px-enabled')?.checked,
+                pxpayMerchantId: document.getElementById('cfg-px-merchant-id')?.value.trim() || '',
+                pxpaySecretKey: document.getElementById('cfg-px-secret-key')?.value.trim() || '',
+                ipassEnabled: !!document.getElementById('cfg-ipass-enabled')?.checked,
+                ipassMerchantId: document.getElementById('cfg-ipass-merchant-id')?.value.trim() || '',
+                ipassSecretKey: document.getElementById('cfg-ipass-secret-key')?.value.trim() || '',
+                twqrEnabled: !!document.getElementById('cfg-twqr-enabled')?.checked,
+                twqrMerchantId: document.getElementById('cfg-twqr-merchant-id')?.value.trim() || '',
+                twqrTerminalId: document.getElementById('cfg-twqr-terminal-id')?.value.trim() || '',
+                easywalletEnabled: !!document.getElementById('cfg-ew-enabled')?.checked,
+                easywalletMerchantId: document.getElementById('cfg-ew-merchant-id')?.value.trim() || '',
+                easywalletSecretKey: document.getElementById('cfg-ew-secret-key')?.value.trim() || '',
+                opayEnabled: !!document.getElementById('cfg-op-enabled')?.checked,
+                opayMerchantId: document.getElementById('cfg-op-merchant-id')?.value.trim() || '',
+                opayHashKey: document.getElementById('cfg-op-hash-key')?.value.trim() || '',
+                ecpayEnabled: !!document.getElementById('cfg-ec-enabled')?.checked,
+                ecpayMerchantId: document.getElementById('cfg-ec-merchant-id')?.value.trim() || '',
+                ecpayHashKey: document.getElementById('cfg-ec-hash-key')?.value.trim() || '',
+                ecpayHashIv: document.getElementById('cfg-ec-hash-iv')?.value.trim() || '',
+                newebpayEnabled: !!document.getElementById('cfg-nb-enabled')?.checked,
+                newebpayMerchantId: document.getElementById('cfg-nb-merchant-id')?.value.trim() || '',
+                newebpayHashKey: document.getElementById('cfg-nb-hash-key')?.value.trim() || '',
+                newebpayHashIv: document.getElementById('cfg-nb-hash-iv')?.value.trim() || '',
                 taxId: document.getElementById('cfg-tax-id')?.value.trim() || '',
                 invoicePrefix: (document.getElementById('cfg-invoice-prefix')?.value.trim() || 'XY').toUpperCase(),
                 closedWeekdays: selectedWeekdays,
@@ -1829,6 +2186,35 @@
             setVal('cfg-fp-vendor-id', p.fpVendorId);
             setVal('cfg-fp-client-id', p.fpClientId);
             setVal('cfg-fp-client-secret', p.fpClientSecret);
+            setChk('cfg-lp-enabled', p.linepayEnabled);
+            setVal('cfg-lp-channel-id', p.linepayChannelId);
+            setVal('cfg-lp-channel-secret', p.linepayChannelSecret);
+            setChk('cfg-jko-enabled', p.jkopayEnabled);
+            setVal('cfg-jko-merchant-id', p.jkopayMerchantId);
+            setVal('cfg-jko-api-key', p.jkopayApiKey);
+            setChk('cfg-px-enabled', p.pxpayEnabled);
+            setVal('cfg-px-merchant-id', p.pxpayMerchantId);
+            setVal('cfg-px-secret-key', p.pxpaySecretKey);
+            setChk('cfg-ipass-enabled', p.ipassEnabled);
+            setVal('cfg-ipass-merchant-id', p.ipassMerchantId);
+            setVal('cfg-ipass-secret-key', p.ipassSecretKey);
+            setChk('cfg-twqr-enabled', p.twqrEnabled);
+            setVal('cfg-twqr-merchant-id', p.twqrMerchantId);
+            setVal('cfg-twqr-terminal-id', p.twqrTerminalId);
+            setChk('cfg-ew-enabled', p.easywalletEnabled);
+            setVal('cfg-ew-merchant-id', p.easywalletMerchantId);
+            setVal('cfg-ew-secret-key', p.easywalletSecretKey);
+            setChk('cfg-op-enabled', p.opayEnabled);
+            setVal('cfg-op-merchant-id', p.opayMerchantId);
+            setVal('cfg-op-hash-key', p.opayHashKey);
+            setChk('cfg-ec-enabled', p.ecpayEnabled);
+            setVal('cfg-ec-merchant-id', p.ecpayMerchantId);
+            setVal('cfg-ec-hash-key', p.ecpayHashKey);
+            setVal('cfg-ec-hash-iv', p.ecpayHashIv);
+            setChk('cfg-nb-enabled', p.newebpayEnabled);
+            setVal('cfg-nb-merchant-id', p.newebpayMerchantId);
+            setVal('cfg-nb-hash-key', p.newebpayHashKey);
+            setVal('cfg-nb-hash-iv', p.newebpayHashIv);
             setChk('cfg-fp-auto-accept', p.fpAutoAccept);
             setVal('cfg-tax-id', p.taxId);
             setVal('cfg-invoice-prefix', p.invoicePrefix);
@@ -2150,17 +2536,27 @@
 
         function setPaymentMethod(method) {
             window.paymentMethod = method;
-            const btnCounter = document.getElementById('pay-btn-counter');
-            const btnTransfer = document.getElementById('pay-btn-transfer');
+            renderDynamicPaymentOptions();
             const transferBox = document.getElementById('transfer-info-box');
-            if (method === 'counter') {
-                btnCounter.className = 'py-2 px-2.5 rounded-xl text-xs font-bold bg-wine-800 text-cream-50 border border-wine-800 transition text-center';
-                btnTransfer.className = 'py-2 px-2.5 rounded-xl text-xs font-medium bg-white text-stone-700 border border-cream-300 transition text-center';
-                transferBox.classList.add('hidden');
-            } else {
-                btnTransfer.className = 'py-2 px-2.5 rounded-xl text-xs font-bold bg-wine-800 text-cream-50 border border-wine-800 transition text-center';
-                btnCounter.className = 'py-2 px-2.5 rounded-xl text-xs font-medium bg-white text-stone-700 border border-cream-300 transition text-center';
+            const thirdpartyBox = document.getElementById('thirdparty-pay-box');
+            const thirdpartyTitle = document.getElementById('thirdparty-pay-title');
+            const isThirdParty = THIRD_PARTY_PAY_METHODS.includes(method);
+
+            if (method === 'transfer') {
                 transferBox.classList.remove('hidden');
+                thirdpartyBox.classList.add('hidden');
+            } else if (isThirdParty) {
+                transferBox.classList.add('hidden');
+                thirdpartyBox.classList.remove('hidden');
+                if (thirdpartyTitle && PAYMENT_METHOD_META[method]) {
+                    thirdpartyTitle.textContent = PAYMENT_METHOD_META[method].title;
+                }
+            } else {
+                transferBox.classList.add('hidden');
+                thirdpartyBox.classList.add('hidden');
+            }
+
+            if (method === 'transfer' || isThirdParty) {
                 setTimeout(() => {
                     const sc = document.getElementById('cart-scroll-container');
                     if (sc) sc.scrollTo({ top: sc.scrollHeight, behavior: 'smooth' });
@@ -2451,6 +2847,11 @@
                 const isPreparing = order.status === 'preparing';
                 const isCancelled = order.status === 'cancelled';
                 const isPaid = order.paymentStatus === 'paid';
+                const sourceBadge = order.source === 'ubereats'
+                    ? `<span class="px-2 py-0.5 rounded-full bg-emerald-900 text-emerald-300 font-bold text-[10px]">🛵 UberEats</span>`
+                    : order.source === 'foodpanda'
+                    ? `<span class="px-2 py-0.5 rounded-full bg-pink-600 text-white font-bold text-[10px]">🐼 foodpanda</span>`
+                    : `<span class="px-2 py-0.5 rounded-full bg-wine-100 text-wine-800 font-bold text-[10px]">🏪 品牌官網</span>`;
                 const badgeHtml = isPending ? `<span class="px-2.5 py-1 rounded-full bg-amber-500 text-wine-950 font-bold text-xs">🔔 新訂單</span>`
                     : isPreparing ? `<span class="px-2.5 py-1 rounded-full bg-sky-500 text-white font-bold text-xs">🍳 製作中</span>`
                     : isCancelled ? `<span class="px-2.5 py-1 rounded-full bg-rose-600 text-white font-bold text-xs">✕ 已取消</span>`
@@ -2460,9 +2861,10 @@
                     <div class="rounded-3xl bg-[#fffcf7] text-wine-950 p-5 border-2 ${isPending ? 'border-amber-400 shadow-xl' : 'border-gold-400/50 shadow-lg'} flex flex-col justify-between">
                         <div>
                             <div class="flex items-center justify-between pb-3 mb-3 border-b border-wine-800/15">
-                                <div>
-                                    <span class="font-serif text-2xl font-black text-wine-900">#${order.orderNumber}</span>
-                                    <span class="text-xs text-stone-500 ml-2">${order.timeString || ''}</span>
+                                <div class="flex items-center gap-2 flex-wrap">
+                                    <span class="font-serif text-xl sm:text-2xl font-black text-wine-900">#${order.orderNumber}</span>
+                                    ${sourceBadge}
+                                    <span class="text-xs text-stone-500">${order.timeString || ''}</span>
                                 </div>
                                 <div class="flex items-center gap-1.5">
                                     ${badgeHtml}
@@ -2471,9 +2873,11 @@
                             </div>
                             <div class="mb-3 flex items-center justify-between gap-2 text-[11px]">
                                 <span class="px-2 py-0.5 rounded font-bold ${isPaid ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'}">
-                                    ${isPaid ? '💰 已確認收款' : (order.paymentMethod === 'transfer' ? `💳 轉帳後五碼:${order.transferLast5}` : '💵 到店付款')}
+                                    ${isPaid
+                                        ? (order.paymentMethod === 'platform_paid' ? '💰 外送平台已付款' : (THIRD_PARTY_PAY_METHODS.includes(order.paymentMethod) ? `${PAYMENT_METHOD_META[order.paymentMethod].label} 已收款` : '💰 已確認收款'))
+                                        : (order.paymentMethod === 'transfer' ? `💳 轉帳後五碼:${order.transferLast5}` : (THIRD_PARTY_PAY_METHODS.includes(order.paymentMethod) ? `${PAYMENT_METHOD_META[order.paymentMethod].label} 待確認入帳` : '💵 到店付款'))}
                                 </span>
-                                ${!isCancelled ? `<button onclick="window.togglePaymentStatus('${order.id}', '${order.paymentStatus || 'unpaid'}')" class="px-2 py-1 rounded bg-emerald-600 text-white font-bold">${isPaid ? '取消收款' : '✓ 標記已收款'}</button>` : ''}
+                                ${!isCancelled && order.paymentMethod !== 'platform_paid' ? `<button onclick="window.togglePaymentStatus('${order.id}', '${order.paymentStatus || 'unpaid'}')" class="px-2 py-1 rounded bg-emerald-600 text-white font-bold">${isPaid ? '取消收款' : '✓ 標記已收款'}</button>` : ''}
                             </div>
                             <div class="bg-cream-100 rounded-xl p-3 mb-3 text-xs space-y-1 border border-cream-200">
                                 <div class="flex justify-between"><span>取餐人：</span><strong>${order.customerName} (${order.diningType}${order.tableNumber ? ' ' + order.tableNumber : ''})</strong></div>
@@ -2783,16 +3187,23 @@
             }
 
             if (activeReportType === 'txDetails') {
-                const rows = orders.map(o => [
-                    `#${o.orderNumber}`,
-                    new Date(o.createdAt || Date.now()).toLocaleString('zh-TW'),
-                    o.customerName,
-                    o.diningType,
-                    o.paymentMethod === 'transfer' ? '線上轉帳' : '到店付款',
-                    o.status === 'cancelled' ? '已取消' : '正常',
-                    `$${o.totalPrice}`
-                ]);
-                return { title: '交易明細報表', headers: ['訂單編號', '交易時間', '顧客姓名', '用餐方式', '付款方式', '狀態', '金額'], rows };
+                const rows = orders.map(o => {
+                    const sourceLabel = o.source === 'ubereats' ? 'UberEats' : (o.source === 'foodpanda' ? 'Foodpanda' : '品牌官網');
+                    const payLabel = o.paymentMethod === 'platform_paid'
+                        ? '外送平台已付'
+                        : (THIRD_PARTY_PAY_METHODS.includes(o.paymentMethod) ? `${PAYMENT_METHOD_META[o.paymentMethod].title}（${o.paymentStatus === 'paid' ? '已收款' : '待確認'}）` : (o.paymentMethod === 'transfer' ? '線上轉帳' : '到店付款'));
+                    return [
+                        `#${o.orderNumber}`,
+                        sourceLabel,
+                        new Date(o.createdAt || Date.now()).toLocaleString('zh-TW'),
+                        o.customerName,
+                        o.diningType,
+                        payLabel,
+                        o.status === 'cancelled' ? '已取消' : '正常',
+                        `$${o.totalPrice}`
+                    ];
+                });
+                return { title: '交易明細報表', headers: ['訂單編號', '訂單來源', '交易時間', '顧客姓名', '用餐方式', '付款方式', '狀態', '金額'], rows };
             }
 
             if (activeReportType === 'inventory') {
@@ -2806,8 +3217,11 @@
 
             if (activeReportType === 'txSummary') {
                 const totalRev = validOrders.reduce((s, o) => s + (o.totalPrice || 0), 0);
-                const cashRev = validOrders.filter(o => o.paymentMethod !== 'transfer').reduce((s, o) => s + (o.totalPrice || 0), 0);
+                const cashRev = validOrders.filter(o => o.paymentMethod === 'counter' || !o.paymentMethod).reduce((s, o) => s + (o.totalPrice || 0), 0);
                 const transRev = validOrders.filter(o => o.paymentMethod === 'transfer').reduce((s, o) => s + (o.totalPrice || 0), 0);
+                const thirdRev = validOrders.filter(o => THIRD_PARTY_PAY_METHODS.includes(o.paymentMethod)).reduce((s, o) => s + (o.totalPrice || 0), 0);
+                const ueRev = validOrders.filter(o => o.source === 'ubereats').reduce((s, o) => s + (o.totalPrice || 0), 0);
+                const fpRev = validOrders.filter(o => o.source === 'foodpanda').reduce((s, o) => s + (o.totalPrice || 0), 0);
                 const cancelledCount = orders.filter(o => o.status === 'cancelled').length;
                 return {
                     title: '交易匯總報表',
@@ -2815,9 +3229,12 @@
                     rows: [
                         ['有效成交訂單總數', `${validOrders.length} 筆`],
                         ['已取消作廢訂單數', `${cancelledCount} 筆`],
-                        ['到店櫃檯收款總額', `$${cashRev}`],
-                        ['線上轉帳收款總額', `$${transRev}`],
-                        ['營業總收入合計', `$${totalRev}`]
+                        ['💵 到店櫃檯現金收款總額', `$${cashRev}`],
+                        ['🏦 銀行帳號線上轉帳總額', `$${transRev}`],
+                        ['💳 第三方行動支付總額', `$${thirdRev}`],
+                        ['🛵 UberEats 外送平台營業額', `$${ueRev}`],
+                        ['🐼 Foodpanda 外送平台營業額', `$${fpRev}`],
+                        ['全通路營業總收入合計', `$${totalRev}`]
                     ]
                 };
             }
@@ -2952,6 +3369,45 @@
             `;
         };
 
+        let deferredPwaPrompt = null;
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPwaPrompt = e;
+        });
+
+        function initPwaAppSupport() {
+            // 註冊 Service Worker：讓「安裝桌面接單 App」真正可用（iOS/Android/桌機）
+            if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.register('sw.js').catch(() => {});
+            }
+            // 從桌面 App 或以 ?mode=owner 開啟時，直接跳出老闆密碼視窗
+            const params = new URLSearchParams(window.location.search);
+            if (params.get('mode') === 'owner') {
+                setTimeout(() => {
+                    openOwnerLoginModal();
+                    const pwInput = document.getElementById('owner-password-input');
+                    if (pwInput) pwInput.focus();
+                }, 250);
+            }
+        }
+
+        window.triggerPwaInstallOrGuide = async function() {
+            if (deferredPwaPrompt) {
+                deferredPwaPrompt.prompt();
+                const choice = await deferredPwaPrompt.userChoice;
+                if (choice && choice.outcome === 'accepted') {
+                    showToast('📲 接單後台 App 已成功安裝至您的桌面！');
+                }
+                deferredPwaPrompt = null;
+                return;
+            }
+            const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+            if (isIOS) {
+                showToast('📲 iOS 安裝：點 Safari 下方「分享 ↑」➔ 選「加入主畫面」即可');
+            } else {
+                showToast('📲 安裝：點網址列右側「安裝」圖示，或瀏覽器「⋮ 選單」➔「安裝應用程式」');
+            }
+        };
         let toastTimeout;
         window.showToast = function(message) {
             const toast = document.getElementById('toast-msg');

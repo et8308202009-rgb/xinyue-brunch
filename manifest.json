@@ -1,0 +1,17 @@
+{
+  "name": "昕悅早午餐 接單後台",
+  "short_name": "昕悅接單",
+  "description": "昕悅早午餐店家接單與營運管理 App",
+  "start_url": "./?mode=owner",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#1f0508",
+  "theme_color": "#33060a",
+  "lang": "zh-TW",
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
