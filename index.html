@@ -2695,16 +2695,16 @@
             if (!name) { showToast('請先填寫商品名稱'); return; }
             if (!price || price <= 0) { showToast('請填寫正確的售價'); return; }
 
-            if (editingItemIndex !== null && menuData[editingCatIdx]?.items[editingItemIndex]) {
-                const existing = menuData[editingCatIdx].items[editingItemIndex];
+            if (editingItemIndex !== null && menuData[editingCatIndex]?.items[editingItemIndex]) {
+                const existing = menuData[editingCatIndex].items[editingItemIndex];
                 existing.name = name;
                 if (existing.price !== undefined) existing.price = price;
                 else if (existing.basePrice !== undefined) existing.basePrice = price;
                 else existing.price = price;
                 existing.image = image;
                 existing.popular = popular;
-                if (targetCatIdx !== editingCatIdx) {
-                    menuData[editingCatIdx].items.splice(editingItemIndex, 1);
+                if (targetCatIdx !== editingCatIndex) {
+                    menuData[editingCatIndex].items.splice(editingItemIndex, 1);
                     menuData[targetCatIdx].items.push(existing);
                 }
             } else {
