@@ -940,7 +940,17 @@
                                 <input type="file" accept="image/*" onchange="handleLocalImageUpload(event)" class="hidden">
                             </label>
                             <button type="button" onclick="resetItemImageToDefault()" class="ml-1 px-2.5 py-1.5 rounded-lg bg-white border border-stone-300 text-[11px] text-stone-600">還原預設圖</button>
-                            <input type="text" id="edit-item-img-url" oninput="updateItemImagePreview(this.value)" placeholder="或貼上圖片網址 https://..." class="w-full px-2.5 py-1 rounded-lg bg-white border border-cream-300 text-[11px]">
+                            <input type="text" id="edit-item-img-url" oninput="updateItemImagePreview(this.value)" onchange="updateItemImagePreview(this.value)" placeholder="貼上圖片網址，例如 https://i.imgur.com/xxxx.jpg" class="w-full px-2.5 py-1 rounded-lg bg-white border border-cream-300 text-[11px]">
+                            <p id="edit-item-img-status" class="text-[11px] leading-snug text-stone-500"></p>
+                            <details class="mt-1 rounded-lg bg-white border border-cream-300 px-2 py-1">
+                                <summary class="text-[11px] text-wine-800 cursor-pointer select-none">❓ 怎麼取得圖片網址？（點開看教學）</summary>
+                                <ol class="list-decimal ml-4 mt-1 space-y-0.5 text-[11px] text-stone-600">
+                                    <li>Google 圖片搜尋 → 在圖片上按右鍵 →「複製圖片網址」</li>
+                                    <li>網址要能「直接開成圖片」（結尾通常是 .jpg / .png / .webp）</li>
+                                    <li>貼上後出現「✅ 圖片載入成功」才代表可用</li>
+                                    <li>⚠️ Google 雲端硬碟、Facebook、Instagram 的連結通常會被擋，建議改用 Imgur 上傳</li>
+                                </ol>
+                            </details>
                         </div>
                     </div>
                 </div>
@@ -1011,6 +1021,15 @@
         };
 
         const STORE_ID = "xinyue-brunch";
+
+        // 【網域白名單】防止原始碼被複製到未授權網域盜用（本機開發與 GitHub Pages 皆在名單內）
+        const ALLOWED_DOMAINS = ["localhost", "127.0.0.1", "github.io"];
+        const currentHost = window.location.hostname;
+        const isAuthorizedHost = !currentHost || ALLOWED_DOMAINS.some(d => currentHost === d || currentHost.endsWith("." + d));
+        if (!isAuthorizedHost) {
+            document.body.innerHTML = '<div style="padding:40px;text-align:center;font-family:sans-serif;"><h2>⚠️ 未授權的網域存取</h2><p>此系統僅限於官方授權網域運行，請聯繫創峰行銷取得正式網址。</p></div>';
+            throw new Error("Unauthorized domain: " + currentHost);
+        }
         const rawConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : MY_FIREBASE_CONFIG;
         const isFirebaseConfigured = rawConfig && rawConfig.apiKey && !rawConfig.apiKey.includes("請貼上");
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'xinyue-brunch-prod';
@@ -2249,6 +2268,50 @@
             }
         };
 
+        // ================= 防竄改守護：授權停用時無法用 F12 繞過 =================
+        (function startTamperGuard() {
+            const lockBodyHtml = `
+                <div style="min-height:100vh;background:#1f0508;color:#fcfaf7;display:flex;align-items:center;justify-content:center;padding:24px;text-align:center;font-family:'Noto Sans TC',sans-serif;">
+                    <div style="max-width:420px;background:#fffcf7;color:#33060a;padding:32px;border-radius:24px;border:2px solid #f43f5e;">
+                        <div style="font-size:40px;margin-bottom:12px;">🔒</div>
+                        <h2 style="font-size:22px;font-weight:900;margin-bottom:8px;">系統服務授權已暫停</h2>
+                        <p style="font-size:14px;color:#57534e;line-height:1.6;">您的系統月租服務授權已到期，請聯繫創峰行銷服務專員辦理續約後即可恢復使用。</p>
+                    </div>
+                </div>`;
+
+            const enforce = function() {
+                try {
+                    if (!window.isSystemServiceSuspended || !window.isSystemServiceSuspended()) return;
+
+                    const dash = document.getElementById('owner-dashboard');
+                    if (!dash || dash.classList.contains('hidden')) return; // 沒進後台就不用管
+
+                    const overlay = document.getElementById('owner-suspended-overlay');
+                    if (!overlay) {
+                        // 遮罩被整段刪除 → 直接換成鎖定畫面，不給繞過
+                        document.body.innerHTML = lockBodyHtml;
+                        return;
+                    }
+                    if (overlay.classList.contains('hidden')) overlay.classList.remove('hidden');
+                    if (overlay.style.display !== 'flex') overlay.style.display = 'flex';
+                    if (overlay.style.zIndex !== '9999') overlay.style.zIndex = '9999';
+
+                    const msgText = (window.systemLicense && window.systemLicense.lockMessage)
+                        || '您的系統月租服務授權已到期，請聯繫系統服務專員辦理續約。';
+                    const msgEl = document.getElementById('owner-suspended-msg');
+                    if (msgEl && msgEl.textContent.trim() !== msgText) msgEl.textContent = msgText;
+                } catch (e) {}
+            };
+
+            try {
+                new MutationObserver(enforce).observe(document.documentElement, {
+                    childList: true, subtree: true, attributes: true, attributeFilter: ['class', 'style']
+                });
+            } catch (e) {}
+            setInterval(enforce, 1500);
+            document.addEventListener('DOMContentLoaded', enforce);
+        })();
+
         function enterOwnerMode() {
             document.getElementById('customer-storefront').classList.add('hidden');
             document.getElementById('mobile-cart-bar').classList.add('hidden');
@@ -2541,15 +2604,60 @@
 
         function closeMenuItemEditorModal() { document.getElementById('menu-item-editor-modal').classList.add('hidden'); }
 
+        function normalizeImageUrl(raw) {
+            let u = (raw || '').trim();
+            if (!u) return '';
+            if (/^data:image\//i.test(u)) return u;
+            if (u.startsWith('//')) u = 'https:' + u;
+            const gd = u.match(/drive\.google\.com\/(?:file\/d\/|open\?id=|uc\?id=)([\w-]{15,})/);
+            if (gd) u = `https://drive.google.com/uc?export=view&id=${gd[1]}`;
+            if (!/^https?:\/\//i.test(u)) u = 'https://' + u;
+            return u;
+        }
+
+        function setImageStatus(state, msg) {
+            const el = document.getElementById('edit-item-img-status');
+            if (!el) return;
+            const cls = {
+                ok: 'text-emerald-700 font-bold',
+                warn: 'text-amber-700 font-bold',
+                err: 'text-rose-600 font-bold',
+                idle: 'text-stone-500'
+            }[state] || 'text-stone-500';
+            el.className = 'text-[11px] leading-snug ' + cls;
+            el.textContent = msg;
+        }
+
         function updateItemImagePreview(url) {
-            if (url) document.getElementById('edit-item-img-preview').src = url;
+            const norm = normalizeImageUrl(url);
+            const img = document.getElementById('edit-item-img-preview');
+            if (!norm) { setImageStatus('idle', ''); return; }
+
+            if (!/^data:image\//i.test(norm) && norm !== (url || '').trim()) {
+                const input = document.getElementById('edit-item-img-url');
+                if (input) input.value = norm;
+            }
+
+            img.referrerPolicy = 'no-referrer';
+            img.src = norm;
+            setImageStatus('idle', '⏳ 正在檢查圖片能否載入...');
+
+            const probe = new Image();
+            probe.referrerPolicy = 'no-referrer';
+            probe.onload = function() {
+                setImageStatus('ok', '✅ 圖片載入成功，按下方「套用商品變更」即可');
+            };
+            probe.onerror = function() {
+                setImageStatus('err', '❌ 這個網址載不到圖片。請確認它是「圖片本身」的網址（不是網頁、不是 Google 雲端硬碟分享連結）');
+            };
+            probe.src = norm;
         }
 
         function resetItemImageToDefault() {
             const catIdx = Number(document.getElementById('edit-item-cat').value || 0);
             const defImg = DEFAULT_CATEGORY_IMAGES[menuData[catIdx]?.id] || DEFAULT_CATEGORY_IMAGES.burgers;
             document.getElementById('edit-item-img-url').value = defImg;
-            document.getElementById('edit-item-img-preview').src = defImg;
+            updateItemImagePreview(defImg);
         }
 
         function handleLocalImageUpload(event) {
@@ -2576,24 +2684,27 @@
             reader.readAsDataURL(file);
         }
 
-        function saveMenuItemForm(e) {
+        async function saveMenuItemForm(e) {
             e.preventDefault();
             const targetCatIdx = Number(document.getElementById('edit-item-cat').value);
             const name = document.getElementById('edit-item-name').value.trim();
             const price = Number(document.getElementById('edit-item-price').value);
-            const image = document.getElementById('edit-item-img-url').value.trim();
+            const image = normalizeImageUrl(document.getElementById('edit-item-img-url').value);
             const popular = document.getElementById('edit-item-popular').checked;
 
-            if (editingItemIndex !== null && menuData[editingCatIndex]?.items[editingItemIndex]) {
-                const existing = menuData[editingCatIndex].items[editingItemIndex];
+            if (!name) { showToast('請先填寫商品名稱'); return; }
+            if (!price || price <= 0) { showToast('請填寫正確的售價'); return; }
+
+            if (editingItemIndex !== null && menuData[editingCatIdx]?.items[editingItemIndex]) {
+                const existing = menuData[editingCatIdx].items[editingItemIndex];
                 existing.name = name;
                 if (existing.price !== undefined) existing.price = price;
                 else if (existing.basePrice !== undefined) existing.basePrice = price;
                 else existing.price = price;
                 existing.image = image;
                 existing.popular = popular;
-                if (targetCatIdx !== editingCatIndex) {
-                    menuData[editingCatIndex].items.splice(editingItemIndex, 1);
+                if (targetCatIdx !== editingCatIdx) {
+                    menuData[editingCatIdx].items.splice(editingItemIndex, 1);
                     menuData[targetCatIdx].items.push(existing);
                 }
             } else {
@@ -2601,8 +2712,16 @@
             }
 
             closeMenuItemEditorModal();
-            renderMenu(); renderOwnerStockManager(); markOwnerHasUnsavedChanges();
-            showToast(`已套用「${name}」變更，請記得點擊底部儲存！`);
+            renderMenu();
+            renderOwnerStockManager();
+            showToast(`「${name}」已套用，正在同步到雲端...`);
+            if (window.commitAllOwnerChanges) {
+                await window.commitAllOwnerChanges();
+                showToast(`✅「${name}」已儲存，所有裝置同步完成`);
+            } else {
+                markOwnerHasUnsavedChanges();
+                showToast(`已套用「${name}」，請點底部「儲存所有修改」`);
+            }
         }
 
         function deleteMenuItemFromCategory(catIdx, itemIdx) {
