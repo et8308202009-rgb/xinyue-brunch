@@ -1266,7 +1266,9 @@
             const customTimeVal = document.getElementById('pickup-custom-time')?.value || '';
             const pickupTime = pickupSelect === '其他' ? (customTimeVal ? `指定時間 ${customTimeVal}` : '指定時間') : pickupSelect;
             const note = document.getElementById('order-note').value.trim();
-            const paymentMethod = window.paymentMethod || 'counter';
+            const licensedPays = (typeof getLicensedPayments === 'function') ? getLicensedPayments() : [];
+            const paymentMethod = (window.paymentMethod === 'counter' || window.paymentMethod === 'transfer' || licensedPays.includes(window.paymentMethod))
+                ? window.paymentMethod : 'counter';
             const transferLast5 = document.getElementById('transfer-last5').value.trim();
             const isThirdPartyPay = ['linepay', 'jkopay', 'pxpay', 'ipass', 'twqr', 'easywallet', 'opay', 'ecpay', 'newebpay'].includes(paymentMethod);
 
@@ -1759,7 +1761,7 @@
                         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-wine-800/15">
                             <div>
                                 <h3 class="font-serif text-lg font-bold text-wine-900">💳 台灣 9 大行動支付與金流 API 設定</h3>
-                                <p class="text-xs text-stone-500 mt-0.5">勾選啟用後，客人點餐單會多出該付款選項</p>
+                                <p class="text-xs text-stone-500 mt-0.5">此為「加值方案」，由創峰行銷於總部控制中心開通後才會生效（店家無法自行開啟）</p>
                             </div>
                         </div>
 
@@ -1775,7 +1777,7 @@
                                     <span class="px-2.5 py-0.5 rounded-full bg-[#06C755] text-white text-[11px] font-black">LINE Pay</span>
                                     <div class="flex items-center gap-2">
                                         <button type="button" onclick="testPaymentGateway('LINE Pay', 'cfg-lp-channel-id')" class="px-2 py-0.5 rounded bg-[#06C755] text-white text-[10px] font-bold">測試</button>
-                                        <input type="checkbox" id="cfg-lp-enabled" onchange="markOwnerHasUnsavedChanges()" class="w-4 h-4 accent-[#06C755] cursor-pointer">
+                                        <span id="cfg-lp-status" class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-stone-200 text-stone-500 border border-stone-300">未開通</span>
                                     </div>
                                 </div>
                                 <div class="grid grid-cols-2 gap-2 text-xs">
@@ -1789,7 +1791,7 @@
                                     <span class="px-2.5 py-0.5 rounded-full bg-orange-600 text-white text-[11px] font-black">街口支付</span>
                                     <div class="flex items-center gap-2">
                                         <button type="button" onclick="testPaymentGateway('街口支付', 'cfg-jko-merchant-id')" class="px-2 py-0.5 rounded bg-orange-600 text-white text-[10px] font-bold">測試</button>
-                                        <input type="checkbox" id="cfg-jko-enabled" onchange="markOwnerHasUnsavedChanges()" class="w-4 h-4 accent-orange-600 cursor-pointer">
+                                        <span id="cfg-jko-status" class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-stone-200 text-stone-500 border border-stone-300">未開通</span>
                                     </div>
                                 </div>
                                 <div class="grid grid-cols-2 gap-2 text-xs">
@@ -1803,7 +1805,7 @@
                                     <span class="px-2.5 py-0.5 rounded-full bg-blue-700 text-white text-[11px] font-black">全支付 PX Pay+</span>
                                     <div class="flex items-center gap-2">
                                         <button type="button" onclick="testPaymentGateway('全支付', 'cfg-px-merchant-id')" class="px-2 py-0.5 rounded bg-blue-700 text-white text-[10px] font-bold">測試</button>
-                                        <input type="checkbox" id="cfg-px-enabled" onchange="markOwnerHasUnsavedChanges()" class="w-4 h-4 accent-blue-700 cursor-pointer">
+                                        <span id="cfg-px-status" class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-stone-200 text-stone-500 border border-stone-300">未開通</span>
                                     </div>
                                 </div>
                                 <div class="grid grid-cols-2 gap-2 text-xs">
@@ -1817,7 +1819,7 @@
                                     <span class="px-2.5 py-0.5 rounded-full bg-teal-600 text-white text-[11px] font-black">iPASS MONEY</span>
                                     <div class="flex items-center gap-2">
                                         <button type="button" onclick="testPaymentGateway('iPASS MONEY', 'cfg-ipass-merchant-id')" class="px-2 py-0.5 rounded bg-teal-600 text-white text-[10px] font-bold">測試</button>
-                                        <input type="checkbox" id="cfg-ipass-enabled" onchange="markOwnerHasUnsavedChanges()" class="w-4 h-4 accent-teal-600 cursor-pointer">
+                                        <span id="cfg-ipass-status" class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-stone-200 text-stone-500 border border-stone-300">未開通</span>
                                     </div>
                                 </div>
                                 <div class="grid grid-cols-2 gap-2 text-xs">
@@ -1831,7 +1833,7 @@
                                     <span class="px-2.5 py-0.5 rounded-full bg-rose-700 text-white text-[11px] font-black">台灣 Pay (TWQR)</span>
                                     <div class="flex items-center gap-2">
                                         <button type="button" onclick="testPaymentGateway('台灣 Pay', 'cfg-twqr-merchant-id')" class="px-2 py-0.5 rounded bg-rose-700 text-white text-[10px] font-bold">測試</button>
-                                        <input type="checkbox" id="cfg-twqr-enabled" onchange="markOwnerHasUnsavedChanges()" class="w-4 h-4 accent-rose-700 cursor-pointer">
+                                        <span id="cfg-twqr-status" class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-stone-200 text-stone-500 border border-stone-300">未開通</span>
                                     </div>
                                 </div>
                                 <div class="grid grid-cols-2 gap-2 text-xs">
@@ -1845,7 +1847,7 @@
                                     <span class="px-2.5 py-0.5 rounded-full bg-cyan-700 text-white text-[11px] font-black">悠遊付 EasyWallet</span>
                                     <div class="flex items-center gap-2">
                                         <button type="button" onclick="testPaymentGateway('悠遊付', 'cfg-ew-merchant-id')" class="px-2 py-0.5 rounded bg-cyan-700 text-white text-[10px] font-bold">測試</button>
-                                        <input type="checkbox" id="cfg-ew-enabled" onchange="markOwnerHasUnsavedChanges()" class="w-4 h-4 accent-cyan-700 cursor-pointer">
+                                        <span id="cfg-ew-status" class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-stone-200 text-stone-500 border border-stone-300">未開通</span>
                                     </div>
                                 </div>
                                 <div class="grid grid-cols-2 gap-2 text-xs">
@@ -1859,7 +1861,7 @@
                                     <span class="px-2.5 py-0.5 rounded-full bg-amber-600 text-white text-[11px] font-black">歐付寶 O'Pay</span>
                                     <div class="flex items-center gap-2">
                                         <button type="button" onclick="testPaymentGateway('歐付寶', 'cfg-op-merchant-id')" class="px-2 py-0.5 rounded bg-amber-600 text-white text-[10px] font-bold">測試</button>
-                                        <input type="checkbox" id="cfg-op-enabled" onchange="markOwnerHasUnsavedChanges()" class="w-4 h-4 accent-amber-600 cursor-pointer">
+                                        <span id="cfg-op-status" class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-stone-200 text-stone-500 border border-stone-300">未開通</span>
                                     </div>
                                 </div>
                                 <div class="grid grid-cols-2 gap-2 text-xs">
@@ -1873,7 +1875,7 @@
                                     <span class="px-2.5 py-0.5 rounded-full bg-sky-700 text-white text-[11px] font-black">綠界 ECPay</span>
                                     <div class="flex items-center gap-2">
                                         <button type="button" onclick="testPaymentGateway('綠界 ECPay', 'cfg-ec-merchant-id')" class="px-2 py-0.5 rounded bg-sky-700 text-white text-[10px] font-bold">測試</button>
-                                        <input type="checkbox" id="cfg-ec-enabled" onchange="markOwnerHasUnsavedChanges()" class="w-4 h-4 accent-sky-700 cursor-pointer">
+                                        <span id="cfg-ec-status" class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-stone-200 text-stone-500 border border-stone-300">未開通</span>
                                     </div>
                                 </div>
                                 <div class="grid grid-cols-3 gap-1.5 text-xs">
@@ -1888,7 +1890,7 @@
                                     <span class="px-2.5 py-0.5 rounded-full bg-indigo-700 text-white text-[11px] font-black">藍新 NewebPay</span>
                                     <div class="flex items-center gap-2">
                                         <button type="button" onclick="testPaymentGateway('藍新 NewebPay', 'cfg-nb-merchant-id')" class="px-2 py-0.5 rounded bg-indigo-700 text-white text-[10px] font-bold">測試</button>
-                                        <input type="checkbox" id="cfg-nb-enabled" onchange="markOwnerHasUnsavedChanges()" class="w-4 h-4 accent-indigo-700 cursor-pointer">
+                                        <span id="cfg-nb-status" class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-stone-200 text-stone-500 border border-stone-300">未開通</span>
                                     </div>
                                 </div>
                                 <div class="grid grid-cols-3 gap-1.5 text-xs">
@@ -1991,21 +1993,32 @@
 
         const THIRD_PARTY_PAY_METHODS = ['linepay', 'jkopay', 'pxpay', 'ipass', 'twqr', 'easywallet', 'opay', 'ecpay', 'newebpay'];
 
+        // 線上支付屬於「加值方案」：只有總部控制中心開通的項目才會出現在前台
+        function getLicensedPayments() {
+            const lic = window.systemLicense || {};
+            const list = Array.isArray(lic.enabledPayments) ? lic.enabledPayments : [];
+            return THIRD_PARTY_PAY_METHODS.filter(k => list.includes(k));
+        }
+
+        function updateGatewayStatusBadges() {
+            const list = getLicensedPayments();
+            const map = { lp: 'linepay', jko: 'jkopay', px: 'pxpay', ipass: 'ipass', twqr: 'twqr', ew: 'easywallet', op: 'opay', ec: 'ecpay', nb: 'newebpay' };
+            Object.keys(map).forEach(k => {
+                const el = document.getElementById('cfg-' + k + '-status');
+                if (!el) return;
+                const on = list.includes(map[k]);
+                el.textContent = on ? '已開通' : '未開通';
+                el.className = on
+                    ? 'px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-300'
+                    : 'px-2 py-0.5 rounded-full text-[10px] font-bold bg-stone-200 text-stone-500 border border-stone-300';
+            });
+        }
+
         // 依店舖設定動態產生前台付款方式按鈕（未啟用的金流不會顯示）
         function renderDynamicPaymentOptions() {
             const grid = document.getElementById('payment-methods-grid');
             if (!grid) return;
-            const p = window.storeProfileState || {};
-            const available = ['counter', 'transfer'];
-            if (p.linepayEnabled) available.push('linepay');
-            if (p.jkopayEnabled) available.push('jkopay');
-            if (p.pxpayEnabled) available.push('pxpay');
-            if (p.ipassEnabled) available.push('ipass');
-            if (p.twqrEnabled) available.push('twqr');
-            if (p.easywalletEnabled) available.push('easywallet');
-            if (p.opayEnabled) available.push('opay');
-            if (p.ecpayEnabled) available.push('ecpay');
-            if (p.newebpayEnabled) available.push('newebpay');
+            const available = ['counter', 'transfer', ...getLicensedPayments()];
 
             if (!available.includes(window.paymentMethod)) window.paymentMethod = 'counter';
 
@@ -2113,32 +2126,23 @@
                 fpClientId: document.getElementById('cfg-fp-client-id')?.value.trim() || '',
                 fpClientSecret: document.getElementById('cfg-fp-client-secret')?.value.trim() || '',
                 fpAutoAccept: !!document.getElementById('cfg-fp-auto-accept')?.checked,
-                linepayEnabled: !!document.getElementById('cfg-lp-enabled')?.checked,
                 linepayChannelId: document.getElementById('cfg-lp-channel-id')?.value.trim() || '',
                 linepayChannelSecret: document.getElementById('cfg-lp-channel-secret')?.value.trim() || '',
-                jkopayEnabled: !!document.getElementById('cfg-jko-enabled')?.checked,
                 jkopayMerchantId: document.getElementById('cfg-jko-merchant-id')?.value.trim() || '',
                 jkopayApiKey: document.getElementById('cfg-jko-api-key')?.value.trim() || '',
-                pxpayEnabled: !!document.getElementById('cfg-px-enabled')?.checked,
                 pxpayMerchantId: document.getElementById('cfg-px-merchant-id')?.value.trim() || '',
                 pxpaySecretKey: document.getElementById('cfg-px-secret-key')?.value.trim() || '',
-                ipassEnabled: !!document.getElementById('cfg-ipass-enabled')?.checked,
                 ipassMerchantId: document.getElementById('cfg-ipass-merchant-id')?.value.trim() || '',
                 ipassSecretKey: document.getElementById('cfg-ipass-secret-key')?.value.trim() || '',
-                twqrEnabled: !!document.getElementById('cfg-twqr-enabled')?.checked,
                 twqrMerchantId: document.getElementById('cfg-twqr-merchant-id')?.value.trim() || '',
                 twqrTerminalId: document.getElementById('cfg-twqr-terminal-id')?.value.trim() || '',
-                easywalletEnabled: !!document.getElementById('cfg-ew-enabled')?.checked,
                 easywalletMerchantId: document.getElementById('cfg-ew-merchant-id')?.value.trim() || '',
                 easywalletSecretKey: document.getElementById('cfg-ew-secret-key')?.value.trim() || '',
-                opayEnabled: !!document.getElementById('cfg-op-enabled')?.checked,
                 opayMerchantId: document.getElementById('cfg-op-merchant-id')?.value.trim() || '',
                 opayHashKey: document.getElementById('cfg-op-hash-key')?.value.trim() || '',
-                ecpayEnabled: !!document.getElementById('cfg-ec-enabled')?.checked,
                 ecpayMerchantId: document.getElementById('cfg-ec-merchant-id')?.value.trim() || '',
                 ecpayHashKey: document.getElementById('cfg-ec-hash-key')?.value.trim() || '',
                 ecpayHashIv: document.getElementById('cfg-ec-hash-iv')?.value.trim() || '',
-                newebpayEnabled: !!document.getElementById('cfg-nb-enabled')?.checked,
                 newebpayMerchantId: document.getElementById('cfg-nb-merchant-id')?.value.trim() || '',
                 newebpayHashKey: document.getElementById('cfg-nb-hash-key')?.value.trim() || '',
                 newebpayHashIv: document.getElementById('cfg-nb-hash-iv')?.value.trim() || '',
@@ -2186,35 +2190,27 @@
             setVal('cfg-fp-vendor-id', p.fpVendorId);
             setVal('cfg-fp-client-id', p.fpClientId);
             setVal('cfg-fp-client-secret', p.fpClientSecret);
-            setChk('cfg-lp-enabled', p.linepayEnabled);
             setVal('cfg-lp-channel-id', p.linepayChannelId);
             setVal('cfg-lp-channel-secret', p.linepayChannelSecret);
-            setChk('cfg-jko-enabled', p.jkopayEnabled);
             setVal('cfg-jko-merchant-id', p.jkopayMerchantId);
             setVal('cfg-jko-api-key', p.jkopayApiKey);
-            setChk('cfg-px-enabled', p.pxpayEnabled);
             setVal('cfg-px-merchant-id', p.pxpayMerchantId);
             setVal('cfg-px-secret-key', p.pxpaySecretKey);
-            setChk('cfg-ipass-enabled', p.ipassEnabled);
             setVal('cfg-ipass-merchant-id', p.ipassMerchantId);
             setVal('cfg-ipass-secret-key', p.ipassSecretKey);
-            setChk('cfg-twqr-enabled', p.twqrEnabled);
             setVal('cfg-twqr-merchant-id', p.twqrMerchantId);
             setVal('cfg-twqr-terminal-id', p.twqrTerminalId);
-            setChk('cfg-ew-enabled', p.easywalletEnabled);
             setVal('cfg-ew-merchant-id', p.easywalletMerchantId);
             setVal('cfg-ew-secret-key', p.easywalletSecretKey);
-            setChk('cfg-op-enabled', p.opayEnabled);
             setVal('cfg-op-merchant-id', p.opayMerchantId);
             setVal('cfg-op-hash-key', p.opayHashKey);
-            setChk('cfg-ec-enabled', p.ecpayEnabled);
             setVal('cfg-ec-merchant-id', p.ecpayMerchantId);
             setVal('cfg-ec-hash-key', p.ecpayHashKey);
             setVal('cfg-ec-hash-iv', p.ecpayHashIv);
-            setChk('cfg-nb-enabled', p.newebpayEnabled);
             setVal('cfg-nb-merchant-id', p.newebpayMerchantId);
             setVal('cfg-nb-hash-key', p.newebpayHashKey);
-            setVal('cfg-nb-hash-iv', p.newebpayHashIv);
+            setVal('cfg-nb-hash-iv', p.newebpayHashIv);
+            updateGatewayStatusBadges();
             setChk('cfg-fp-auto-accept', p.fpAutoAccept);
             setVal('cfg-tax-id', p.taxId);
             setVal('cfg-invoice-prefix', p.invoicePrefix);
@@ -2642,6 +2638,7 @@
         }
 
         window.checkOwnerLicenseUi = function() {
+            if (typeof renderDynamicPaymentOptions === 'function') renderDynamicPaymentOptions();
             const lic = window.systemLicense || {};
             const overlay = document.getElementById('owner-suspended-overlay');
             const expBanner = document.getElementById('owner-expiring-banner');
