@@ -326,9 +326,16 @@
 
             <!-- ================= 分頁 4：店舖資料、公休日與 UberEats API 設定 ================= -->
             <div id="owner-store-settings-panel" class="hidden space-y-6">
+                <!-- 設定子分頁導覽列 -->
+                <div class="p-2 rounded-2xl bg-wine-900/80 border border-gold-400/30 flex items-center gap-2 overflow-x-auto no-scrollbar">
+                    <button type="button" onclick="switchSettingsSubTab('basic')" id="cfg-subtab-basic" class="px-4 py-2 rounded-xl text-xs sm:text-sm font-bold bg-cream-100 text-wine-950 shadow-sm whitespace-nowrap transition">🏪 店舖基本與公休</button>
+                    <button type="button" onclick="switchSettingsSubTab('payment')" id="cfg-subtab-payment" class="px-4 py-2 rounded-xl text-xs sm:text-sm font-medium text-cream-200 hover:bg-wine-800 whitespace-nowrap transition">💳 行動支付與金流</button>
+                    <button type="button" onclick="switchSettingsSubTab('logistics')" id="cfg-subtab-logistics" class="px-4 py-2 rounded-xl text-xs sm:text-sm font-medium text-cream-200 hover:bg-wine-800 whitespace-nowrap transition">🚚 即時物流派車</button>
+                    <button type="button" onclick="switchSettingsSubTab('delivery')" id="cfg-subtab-delivery" class="px-4 py-2 rounded-xl text-xs sm:text-sm font-medium text-cream-200 hover:bg-wine-800 whitespace-nowrap transition">🛵 外送平台與發票</button>
+                </div>
                 <form onsubmit="event.preventDefault(); commitAllOwnerChanges();" class="space-y-6">
                     <!-- 基本資料與公告卡片 -->
-                    <div class="rounded-3xl bg-[#fffcf7] text-wine-950 p-6 border border-gold-400/50 shadow-lg space-y-4">
+                    <div id="cfg-card-basic-info" data-cfgsub="basic" class="rounded-3xl bg-[#fffcf7] text-wine-950 p-6 border border-gold-400/50 shadow-lg space-y-4">
                         <div class="flex items-center justify-between pb-3 border-b border-wine-800/15">
                             <h3 class="font-serif text-lg font-bold text-wine-900">🏪 店舖基本資料與前台公告設定</h3>
                             <span class="text-xs text-stone-500">修改後點擊底部「儲存所有修改」立即同步前台</span>
@@ -373,7 +380,7 @@
                     </div>
 
                     <!-- UberEats API 與電子發票設定卡片 -->
-                    <div class="rounded-3xl bg-[#fffcf7] text-wine-950 p-6 border border-gold-400/50 shadow-lg space-y-5">
+                    <div id="cfg-card-delivery" data-cfgsub="delivery" class="rounded-3xl bg-[#fffcf7] text-wine-950 p-6 border border-gold-400/50 shadow-lg space-y-5">
                         <div class="flex items-center justify-between pb-3 border-b border-wine-800/15">
                             <h3 class="font-serif text-lg font-bold text-wine-900">🛵 外送平台 API 串接（UberEats & Foodpanda）與發票設定</h3>
                         </div>
@@ -699,7 +706,7 @@
                 </div>
 
                 <div class="pt-8 flex flex-col sm:flex-row items-center justify-between text-xs text-cream-200/50 gap-4">
-                    <p>© 2026 <span id="copyright-store-name">昕悅早午餐 Xin Yue Brunch</span>. All Rights Reserved. <span class="ml-1.5 px-2 py-0.5 rounded bg-wine-900 text-gold-400/80 font-mono text-[10px]">v2.6.0</span></p>
+                    <p>© 2026 <span id="copyright-store-name">昕悅早午餐 Xin Yue Brunch</span>. All Rights Reserved. <span class="ml-1.5 px-2 py-0.5 rounded bg-wine-900 text-gold-400/80 font-mono text-[10px]">v2.8.0</span></p>
                     <div class="flex items-center gap-4">
                         <span class="tracking-widest text-gold-400/70">FRESH / BRUNCH / GOOD MOOD ♡</span>
                         <button onclick="openOwnerLoginModal()" class="px-3 py-1 rounded-full bg-wine-900/80 hover:bg-wine-800 text-cream-200/70 hover:text-gold-400 border border-wine-700/60 transition flex items-center gap-1">
@@ -788,15 +795,31 @@
                     <div class="grid grid-cols-2 gap-3">
                         <div>
                             <label class="block text-xs text-stone-500 mb-1">用餐方式</label>
-                            <div class="grid grid-cols-2 gap-1 bg-white p-1 rounded-lg border border-cream-300">
+                            <div id="dining-type-grid" class="grid grid-cols-2 gap-1 bg-white p-1 rounded-lg border border-cream-300 text-xs">
                                 <button type="button" onclick="setDiningType('內用')" id="btn-dine-in" class="py-1.5 rounded-md font-medium bg-wine-800 text-cream-50 transition">內用</button>
                                 <button type="button" onclick="setDiningType('外帶')" id="btn-take-out" class="py-1.5 rounded-md font-medium text-stone-600 hover:bg-cream-100 transition">外帶</button>
+                                <button type="button" onclick="setDiningType('外送')" id="btn-delivery" class="hidden py-1.5 rounded-md font-medium text-stone-600 hover:bg-cream-100 transition">🛵 外送</button>
                             </div>
                         </div>
                         <div id="table-number-box">
                             <label for="table-number" class="block text-xs text-stone-500 mb-1">桌號 (內用填寫)</label>
                             <input type="text" id="table-number" placeholder="例如：3號桌" class="w-full px-3 py-1.5 rounded-lg bg-white border border-cream-300 focus:outline-none focus:border-wine-800">
                         </div>
+                    </div>
+
+                    <!-- 專人外送地址與物流運費試算框 -->
+                    <div id="delivery-address-box" class="hidden p-3 rounded-xl bg-amber-50/90 border border-amber-300 space-y-2 text-xs">
+                        <div class="flex items-center justify-between">
+                            <span class="font-bold text-wine-900">🛵 專人外送（餐點原價＋物流配送費）</span>
+                            <span id="delivery-fee-badge" class="px-2 py-0.5 rounded-full bg-wine-800 text-gold-400 font-bold text-[10px]">預估運費 $75</span>
+                        </div>
+                        <div>
+                            <label for="delivery-address" class="block text-wine-900 font-bold mb-1">外送收件地址 *</label>
+                            <input type="text" id="delivery-address" placeholder="例如：新竹市北區北大路168號5樓" class="w-full px-3 py-1.5 rounded-lg bg-white border border-amber-300 text-xs focus:outline-none focus:border-wine-800">
+                        </div>
+                        <p id="delivery-rule-hint" class="text-[11px] text-amber-900/85">
+                            • 最低外送門檻 $200｜滿 $400 享運費折抵 $30（物流司機不代收現金，請選線上付款）
+                        </p>
                     </div>
                     <div class="grid grid-cols-2 gap-3">
                         <div>
@@ -869,6 +892,10 @@
             </div>
 
             <div class="px-4 py-3.5 bg-white border-t border-cream-200 space-y-2.5 shrink-0">
+                <div id="cart-delivery-fee-row" class="hidden flex items-center justify-between text-xs text-amber-800 font-medium">
+                    <span>🛵 專人外送物流費</span>
+                    <span id="cart-delivery-fee-val" class="font-bold">+$75</span>
+                </div>
                 <div class="flex items-center justify-between">
                     <span class="text-xs sm:text-sm text-stone-600 font-medium">預估合計金額</span>
                     <span id="cart-total-price" class="font-serif text-xl sm:text-2xl font-bold text-wine-800">$0</span>
@@ -1272,10 +1299,33 @@
             const transferLast5 = document.getElementById('transfer-last5').value.trim();
             const isThirdPartyPay = ['linepay', 'jkopay', 'pxpay', 'ipass', 'twqr', 'easywallet', 'opay', 'ecpay', 'newebpay'].includes(paymentMethod);
 
-            if (window.diningType === '外帶' && customerPhone.length < 8) {
-                window.showToast('外帶請務必填寫聯絡電話，方便餐點完成或售完時通知您喔！');
+            const deliveryAddress = document.getElementById('delivery-address')?.value.trim() || '';
+
+            if ((window.diningType === '外帶' || window.diningType === '外送') && customerPhone.length < 8) {
+                window.showToast(`${window.diningType}請務必填寫聯絡電話，方便餐點完成或送達時通知您喔！`);
                 document.getElementById('customer-phone').focus();
                 return;
+            }
+
+            const subtotalPrice = window.cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
+            let deliveryFee = 0;
+            if (window.diningType === '外送') {
+                const prof = window.storeProfileState || {};
+                const minOrder = Number(prof.deliveryMinOrder ?? 200);
+                if (subtotalPrice < minOrder) {
+                    window.showToast(`專人外送最低消費為 $${minOrder}（目前餐點 $${subtotalPrice}）`);
+                    return;
+                }
+                if (deliveryAddress.length < 5) {
+                    window.showToast('請填寫完整的外送收件地址喔！');
+                    document.getElementById('delivery-address')?.focus();
+                    return;
+                }
+                if (paymentMethod === 'counter') {
+                    window.showToast('外送司機不代收現金，請選「線上轉帳」或「行動支付」先付款喔！');
+                    return;
+                }
+                deliveryFee = window.calculateDeliveryFee ? window.calculateDeliveryFee(subtotalPrice) : 75;
             }
 
             if (paymentMethod === 'transfer' && transferLast5.length < 4) {
@@ -1284,7 +1334,7 @@
                 return;
             }
 
-            const totalPrice = window.cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
+            const totalPrice = subtotalPrice + deliveryFee;
             const orderPayload = {
                 orderNumber: String(Math.floor(100 + Math.random() * 900)),
                 source: 'web',
@@ -1292,6 +1342,10 @@
                 customerPhone,
                 diningType: window.diningType || '內用',
                 tableNumber: tableNum,
+                deliveryAddress: window.diningType === '外送' ? deliveryAddress : '',
+                deliveryFee,
+                courierStatus: window.diningType === '外送' ? 'unassigned' : '',
+                courierInfo: '',
                 pickupTime,
                 note,
                 paymentMethod,
@@ -1370,6 +1424,32 @@
             }
             await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'orders', orderId));
             window.showToast('🗑️ 已從雲端永久刪除此筆訂單');
+        };
+
+        window.dispatchCourierForOrder = async function(orderId) {
+            const p = window.storeProfileState || {};
+            const provider = p.uberDirectEnabled ? 'Uber Direct' : 'Lalamove';
+            const drivers = ['陳師傅 (ABC-8899)', '林騎士 (MDE-5210)', '王專員 (NKR-3368)'];
+            const picked = drivers[Math.floor(Math.random() * drivers.length)];
+            const courierInfo = `${provider}（示範模式，未實際叫車）｜司機 ${picked}｜預計 6 分鐘到店取餐`;
+
+            if (!isFirebaseConfigured || !db || !currentUser) {
+                const target = allCloudOrders.find(o => o.id === orderId);
+                if (target) { target.courierStatus = 'dispatched'; target.courierInfo = courierInfo; }
+                if (window.renderOwnerOrders) window.renderOwnerOrders(allCloudOrders);
+                window.showToast(`🚚 已標記派車（示範）：${picked}`);
+                return;
+            }
+            try {
+                await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'orders', orderId), {
+                    courierStatus: 'dispatched',
+                    courierInfo
+                });
+                window.showToast('🚚 已標記派車（示範模式，需串接 API 才會真的叫車）');
+            } catch (e) {
+                console.error(e);
+                window.showToast('派車標記失敗，請重試');
+            }
         };
 
         window.simulateDeliveryOrder = async function(platform) {
@@ -1647,6 +1727,16 @@
             fpClientId: '',
             fpClientSecret: '',
             fpAutoAccept: false,
+            lalamoveEnabled: true,
+            lalamoveApiKey: '',
+            lalamoveApiSecret: '',
+            uberDirectEnabled: false,
+            uberDirectCustomerId: '',
+            uberDirectClientSecret: '',
+            deliveryMinOrder: 200,
+            deliveryBaseFee: 75,
+            deliverySubsidyThreshold: 400,
+            deliverySubsidyAmount: 30,
             linepayEnabled: false,
             linepayChannelId: '',
             linepayChannelSecret: '',
@@ -1710,7 +1800,7 @@
             const formEl = settingsPanel ? settingsPanel.querySelector('form') : null;
             if (formEl && !document.getElementById('closed-days-settings-card')) {
                 const cardHtml = `
-                    <div id="closed-days-settings-card" class="rounded-3xl bg-[#fffcf7] text-wine-950 p-6 border border-gold-400/50 shadow-lg space-y-4">
+                    <div id="closed-days-settings-card" data-cfgsub="basic" class="rounded-3xl bg-[#fffcf7] text-wine-950 p-6 border border-gold-400/50 shadow-lg space-y-4">
                         <div class="flex items-center justify-between pb-3 border-b border-wine-800/15">
                             <h3 class="font-serif text-lg font-bold text-wine-900">🗓️ 店家公休日與店休設定</h3>
                             <span class="text-xs text-stone-500">設定後前台同步顯示並自動攔截公休下單</span>
@@ -1757,7 +1847,7 @@
             // 注入第三方支付設定卡片（預設全部關閉，確定有真實金流帳號再開啟）
             if (formEl && !document.getElementById('thirdparty-payment-settings-card')) {
                 const payCardHtml = `
-                    <div id="thirdparty-payment-settings-card" class="rounded-3xl bg-[#fffcf7] text-wine-950 p-6 border border-gold-400/50 shadow-lg space-y-5">
+                    <div id="thirdparty-payment-settings-card" data-cfgsub="payment" class="rounded-3xl bg-[#fffcf7] text-wine-950 p-6 border border-gold-400/50 shadow-lg space-y-5">
                         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-wine-800/15">
                             <div>
                                 <h3 class="font-serif text-lg font-bold text-wine-900">💳 台灣 9 大行動支付與金流 API 設定</h3>
@@ -1907,6 +1997,83 @@
                 else formEl.insertAdjacentHTML('beforeend', payCardHtml);
             }
 
+            // 注入即時物流派車卡片（Lalamove / Uber Direct）
+            if (formEl && !document.getElementById('logistics-dispatch-settings-card')) {
+                const logiCardHtml = `
+                    <div id="logistics-dispatch-settings-card" data-cfgsub="logistics" class="rounded-3xl bg-[#fffcf7] text-wine-950 p-6 border border-gold-400/50 shadow-lg space-y-5">
+                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-wine-800/15">
+                            <div>
+                                <h3 class="font-serif text-lg font-bold text-wine-900">🚚 即時物流派車（Lalamove & Uber Direct）</h3>
+                                <p class="text-xs text-stone-500 mt-0.5">開啟後，客人結帳可選「外送」，訂單會多一個「一鍵派車」按鈕</p>
+                            </div>
+                        </div>
+
+                        <div class="p-3 rounded-2xl bg-amber-50 border border-amber-300 text-[11px] text-amber-900 leading-relaxed">
+                            ⚠️ <strong>目前派車為示範模式：</strong>按下「一鍵派車」只會在訂單上標記一組模擬的司機資訊，<strong>不會真的叫車</strong>。
+                            真正串接需要 Lalamove / Uber Direct 的伺服器端 API（GitHub Pages 是靜態網站，做不到這一步）。
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div class="p-4 rounded-2xl bg-orange-50/70 border border-orange-200 space-y-3">
+                                <div class="flex items-center justify-between">
+                                    <div class="flex items-center gap-2">
+                                        <span class="px-2.5 py-0.5 rounded-full bg-orange-500 text-white text-[11px] font-black">Lalamove</span>
+                                        <span class="text-[11px] text-orange-800 font-bold">免統編可申請</span>
+                                    </div>
+                                    <div class="flex items-center gap-2">
+                                        <button type="button" onclick="testLogisticsGateway('Lalamove', 'cfg-llm-api-key')" class="px-2.5 py-1 rounded-lg bg-orange-500 hover:bg-orange-600 text-white text-[10px] font-bold">測試</button>
+                                        <input type="checkbox" id="cfg-llm-enabled" onchange="markOwnerHasUnsavedChanges()" class="w-4 h-4 accent-orange-500 cursor-pointer">
+                                    </div>
+                                </div>
+                                <div class="grid grid-cols-2 gap-2 text-xs">
+                                    <input type="text" id="cfg-llm-api-key" oninput="markOwnerHasUnsavedChanges()" placeholder="Lalamove API Key" class="w-full px-3 py-1.5 rounded-lg bg-white border border-orange-200 font-mono text-[11px]">
+                                    <input type="password" id="cfg-llm-api-secret" oninput="markOwnerHasUnsavedChanges()" placeholder="API Secret" class="w-full px-3 py-1.5 rounded-lg bg-white border border-orange-200 font-mono text-[11px]">
+                                </div>
+                            </div>
+
+                            <div class="p-4 rounded-2xl bg-emerald-50/70 border border-emerald-200 space-y-3">
+                                <div class="flex items-center justify-between">
+                                    <div class="flex items-center gap-2">
+                                        <span class="px-2.5 py-0.5 rounded-full bg-emerald-900 text-emerald-300 text-[11px] font-black">Uber Direct</span>
+                                        <span class="text-[11px] text-emerald-800 font-bold">需統編簽約</span>
+                                    </div>
+                                    <div class="flex items-center gap-2">
+                                        <button type="button" onclick="testLogisticsGateway('Uber Direct', 'cfg-ud-customer-id')" class="px-2.5 py-1 rounded-lg bg-emerald-700 hover:bg-emerald-800 text-white text-[10px] font-bold">測試</button>
+                                        <input type="checkbox" id="cfg-ud-enabled" onchange="markOwnerHasUnsavedChanges()" class="w-4 h-4 accent-emerald-700 cursor-pointer">
+                                    </div>
+                                </div>
+                                <div class="grid grid-cols-2 gap-2 text-xs">
+                                    <input type="text" id="cfg-ud-customer-id" oninput="markOwnerHasUnsavedChanges()" placeholder="Customer ID" class="w-full px-3 py-1.5 rounded-lg bg-white border border-emerald-200 font-mono text-[11px]">
+                                    <input type="password" id="cfg-ud-client-secret" oninput="markOwnerHasUnsavedChanges()" placeholder="Client Secret" class="w-full px-3 py-1.5 rounded-lg bg-white border border-emerald-200 font-mono text-[11px]">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-2 md:grid-cols-4 gap-3 text-xs pt-1">
+                            <div>
+                                <label class="block text-stone-600 mb-1">最低外送門檻 ($)</label>
+                                <input type="number" id="cfg-deliv-min" oninput="markOwnerHasUnsavedChanges()" value="200" class="w-full px-3 py-2 rounded-xl bg-cream-100 border border-cream-300 font-mono">
+                            </div>
+                            <div>
+                                <label class="block text-stone-600 mb-1">基礎運費 ($)</label>
+                                <input type="number" id="cfg-deliv-fee" oninput="markOwnerHasUnsavedChanges()" value="75" class="w-full px-3 py-2 rounded-xl bg-cream-100 border border-cream-300 font-mono">
+                            </div>
+                            <div>
+                                <label class="block text-stone-600 mb-1">滿額免運門檻 ($)</label>
+                                <input type="number" id="cfg-deliv-sub-min" oninput="markOwnerHasUnsavedChanges()" value="400" class="w-full px-3 py-2 rounded-xl bg-cream-100 border border-cream-300 font-mono">
+                            </div>
+                            <div>
+                                <label class="block text-stone-600 mb-1">滿額折抵運費 ($)</label>
+                                <input type="number" id="cfg-deliv-sub-amt" oninput="markOwnerHasUnsavedChanges()" value="30" class="w-full px-3 py-2 rounded-xl bg-cream-100 border border-cream-300 font-mono">
+                            </div>
+                        </div>
+                    </div>
+                `;
+                const anchor = formEl.querySelector('#cfg-card-delivery') || formEl.lastElementChild;
+                if (anchor) formEl.insertBefore(document.createRange().createContextualFragment(logiCardHtml), anchor);
+                else formEl.insertAdjacentHTML('beforeend', logiCardHtml);
+            }
+
             window.applyDynamicStoreProfile(window.storeProfileState);
             populateStoreSettingsForm();
             renderCategoryTabs();
@@ -1975,7 +2142,36 @@
             }
 
             renderDynamicPaymentOptions();
+            renderDynamicDiningOptions();
+            updateCartUI();
         };
+
+        window.calculateDeliveryFee = function(subtotal) {
+            const p = window.storeProfileState || {};
+            const baseFee = Number(p.deliveryBaseFee ?? 75);
+            const subMin = Number(p.deliverySubsidyThreshold ?? 400);
+            const subAmt = Number(p.deliverySubsidyAmount ?? 30);
+            if (subtotal >= subMin) return Math.max(0, baseFee - subAmt);
+            return baseFee;
+        };
+
+        function renderDynamicDiningOptions() {
+            const p = window.storeProfileState || {};
+            const hasDelivery = !!(p.lalamoveEnabled || p.uberDirectEnabled);
+            const delivBtn = document.getElementById('btn-delivery');
+            const grid = document.getElementById('dining-type-grid');
+            if (delivBtn && grid) {
+                delivBtn.classList.toggle('hidden', !hasDelivery);
+                grid.className = hasDelivery
+                    ? 'grid grid-cols-3 gap-1 bg-white p-1 rounded-lg border border-cream-300 text-xs'
+                    : 'grid grid-cols-2 gap-1 bg-white p-1 rounded-lg border border-cream-300 text-xs';
+                if (!hasDelivery && window.diningType === '外送') setDiningType('內用');
+            }
+            const hintEl = document.getElementById('delivery-rule-hint');
+            if (hintEl) {
+                hintEl.textContent = `• 最低外送門檻 $${p.deliveryMinOrder ?? 200}｜滿 $${p.deliverySubsidyThreshold ?? 400} 享運費折抵 $${p.deliverySubsidyAmount ?? 30}（物流司機不代收現金，請選線上付款）`;
+            }
+        }
 
         const PAYMENT_METHOD_META = {
             counter: { label: '💵 到店櫃檯付款', title: '到店櫃檯現金付款' },
@@ -2140,6 +2336,16 @@
                 fpClientId: document.getElementById('cfg-fp-client-id')?.value.trim() || '',
                 fpClientSecret: document.getElementById('cfg-fp-client-secret')?.value.trim() || '',
                 fpAutoAccept: !!document.getElementById('cfg-fp-auto-accept')?.checked,
+                lalamoveEnabled: !!document.getElementById('cfg-llm-enabled')?.checked,
+                lalamoveApiKey: document.getElementById('cfg-llm-api-key')?.value.trim() || '',
+                lalamoveApiSecret: document.getElementById('cfg-llm-api-secret')?.value.trim() || '',
+                uberDirectEnabled: !!document.getElementById('cfg-ud-enabled')?.checked,
+                uberDirectCustomerId: document.getElementById('cfg-ud-customer-id')?.value.trim() || '',
+                uberDirectClientSecret: document.getElementById('cfg-ud-client-secret')?.value.trim() || '',
+                deliveryMinOrder: Number(document.getElementById('cfg-deliv-min')?.value || 200),
+                deliveryBaseFee: Number(document.getElementById('cfg-deliv-fee')?.value || 75),
+                deliverySubsidyThreshold: Number(document.getElementById('cfg-deliv-sub-min')?.value || 400),
+                deliverySubsidyAmount: Number(document.getElementById('cfg-deliv-sub-amt')?.value || 30),
                 linepayChannelId: document.getElementById('cfg-lp-channel-id')?.value.trim() || '',
                 linepayChannelSecret: document.getElementById('cfg-lp-channel-secret')?.value.trim() || '',
                 jkopayMerchantId: document.getElementById('cfg-jko-merchant-id')?.value.trim() || '',
@@ -2226,6 +2432,16 @@
             setVal('cfg-nb-hash-iv', p.newebpayHashIv);
             updateGatewayStatusBadges();
             setChk('cfg-fp-auto-accept', p.fpAutoAccept);
+            setChk('cfg-llm-enabled', p.lalamoveEnabled);
+            setVal('cfg-llm-api-key', p.lalamoveApiKey);
+            setVal('cfg-llm-api-secret', p.lalamoveApiSecret);
+            setChk('cfg-ud-enabled', p.uberDirectEnabled);
+            setVal('cfg-ud-customer-id', p.uberDirectCustomerId);
+            setVal('cfg-ud-client-secret', p.uberDirectClientSecret);
+            setVal('cfg-deliv-min', p.deliveryMinOrder ?? 200);
+            setVal('cfg-deliv-fee', p.deliveryBaseFee ?? 75);
+            setVal('cfg-deliv-sub-min', p.deliverySubsidyThreshold ?? 400);
+            setVal('cfg-deliv-sub-amt', p.deliverySubsidyAmount ?? 30);
             setVal('cfg-tax-id', p.taxId);
             setVal('cfg-invoice-prefix', p.invoicePrefix);
             setVal('cfg-closed-days-text', p.closedDaysText);
@@ -2512,21 +2728,40 @@
             window.diningType = type;
             const btnIn = document.getElementById('btn-dine-in');
             const btnOut = document.getElementById('btn-take-out');
+            const btnDeliv = document.getElementById('btn-delivery');
             const tableBox = document.getElementById('table-number-box');
+            const delivBox = document.getElementById('delivery-address-box');
             const phoneLabel = document.getElementById('customer-phone-label');
+
+            const activeCls = 'py-1.5 rounded-md font-bold bg-wine-800 text-cream-50 transition';
+            const inactiveCls = 'py-1.5 rounded-md font-medium text-stone-600 hover:bg-cream-100 transition';
+            if (btnIn) btnIn.className = type === '內用' ? activeCls : inactiveCls;
+            if (btnOut) btnOut.className = type === '外帶' ? activeCls : inactiveCls;
+            if (btnDeliv) btnDeliv.className = type === '外送' ? activeCls : inactiveCls;
+
             if (type === '內用') {
-                btnIn.className = 'py-1.5 rounded-md font-medium bg-wine-800 text-cream-50 transition';
-                btnOut.className = 'py-1.5 rounded-md font-medium text-stone-600 hover:bg-cream-100 transition';
                 tableBox.classList.remove('opacity-40', 'pointer-events-none');
+                if (delivBox) delivBox.classList.add('hidden');
                 phoneLabel.textContent = '聯絡電話 (內用選填)';
                 phoneLabel.className = 'block text-xs text-stone-500 mb-1';
-            } else {
-                btnOut.className = 'py-1.5 rounded-md font-medium bg-wine-800 text-cream-50 transition';
-                btnIn.className = 'py-1.5 rounded-md font-medium text-stone-600 hover:bg-cream-100 transition';
+            } else if (type === '外帶') {
                 tableBox.classList.add('opacity-40', 'pointer-events-none');
+                if (delivBox) delivBox.classList.add('hidden');
                 phoneLabel.textContent = '聯絡電話 (外帶必填) *';
                 phoneLabel.className = 'block text-xs text-wine-800 font-bold mb-1';
+            } else {
+                tableBox.classList.add('opacity-40', 'pointer-events-none');
+                if (delivBox) delivBox.classList.remove('hidden');
+                phoneLabel.textContent = '聯絡電話 (外送必填) *';
+                phoneLabel.className = 'block text-xs text-wine-800 font-bold mb-1';
+                if (window.paymentMethod === 'counter') {
+                    const p = window.storeProfileState || {};
+                    const licensedPays = (typeof getLicensedPayments === 'function') ? getLicensedPayments() : [];
+                    const preferred = licensedPays.includes('linepay') ? 'linepay' : 'transfer';
+                    setPaymentMethod(preferred);
+                }
             }
+            updateCartUI();
         }
 
         function onPickupTimeChange() {
@@ -2586,15 +2821,37 @@
 
         function updateCartUI() {
             const totalQty = window.cart.reduce((sum, item) => sum + item.qty, 0);
-            const totalPrice = window.cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
-            document.getElementById('nav-cart-count').textContent = totalQty;
-            document.getElementById('mobile-bar-count').textContent = totalQty;
-            document.getElementById('mobile-bar-total').textContent = `$${totalPrice}`;
-            document.getElementById('cart-total-price').textContent = `$${totalPrice}`;
+            const subtotalPrice = window.cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
+            const isDeliv = window.diningType === '外送' && subtotalPrice > 0;
+            const delivFee = (isDeliv && window.calculateDeliveryFee) ? window.calculateDeliveryFee(subtotalPrice) : 0;
+            const totalPrice = subtotalPrice + delivFee;
+
+            const feeRow = document.getElementById('cart-delivery-fee-row');
+            const feeVal = document.getElementById('cart-delivery-fee-val');
+            const feeBadge = document.getElementById('delivery-fee-badge');
+            if (feeRow && feeVal) {
+                feeRow.classList.toggle('hidden', !isDeliv);
+                feeVal.textContent = delivFee === 0 ? '免運費 ($0)' : `+$${delivFee}`;
+            }
+            if (feeBadge && window.calculateDeliveryFee) {
+                const previewFee = window.calculateDeliveryFee(subtotalPrice);
+                feeBadge.textContent = previewFee === 0 ? '已享免運費' : `預估運費 $${previewFee}`;
+            }
+
+            const navCountEl = document.getElementById('nav-cart-count');
+            const mobileCountEl = document.getElementById('mobile-bar-count');
+            const mobileTotalEl = document.getElementById('mobile-bar-total');
+            const cartTotalEl = document.getElementById('cart-total-price');
+            if (navCountEl) navCountEl.textContent = totalQty;
+            if (mobileCountEl) mobileCountEl.textContent = totalQty;
+            if (mobileTotalEl) mobileTotalEl.textContent = `$${totalPrice}`;
+            if (cartTotalEl) cartTotalEl.textContent = `$${totalPrice}`;
 
             const mobileBar = document.getElementById('mobile-cart-bar');
-            if (totalQty > 0 && !window.isOwnerLoggedIn) mobileBar.classList.remove('hidden');
-            else mobileBar.classList.add('hidden');
+            if (mobileBar) {
+                if (totalQty > 0 && !window.isOwnerLoggedIn) mobileBar.classList.remove('hidden');
+                else mobileBar.classList.add('hidden');
+            }
 
             const container = document.getElementById('cart-items-container');
             if (window.cart.length === 0) {
@@ -2768,6 +3025,22 @@
             });
             if (tab === 'stock') renderOwnerStockManager();
             if (tab === 'reports') renderActiveReportTable();
+            if (tab === 'settings') switchSettingsSubTab('basic');
+        }
+
+        // 設定頁四個子分頁：基本 / 金流 / 物流 / 外送發票
+        function switchSettingsSubTab(subKey) {
+            ['basic', 'payment', 'logistics', 'delivery'].forEach(k => {
+                const btn = document.getElementById('cfg-subtab-' + k);
+                if (btn) {
+                    btn.className = k === subKey
+                        ? 'px-4 py-2 rounded-xl text-xs sm:text-sm font-bold bg-cream-100 text-wine-950 shadow-sm whitespace-nowrap transition'
+                        : 'px-4 py-2 rounded-xl text-xs sm:text-sm font-medium text-cream-200 hover:bg-wine-800 whitespace-nowrap transition';
+                }
+            });
+            document.querySelectorAll('#owner-store-settings-panel form > [data-cfgsub]').forEach(el => {
+                el.classList.toggle('hidden', el.getAttribute('data-cfgsub') !== subKey);
+            });
         }
 
         // ================= 訂單日期篩選與渲染 =================
@@ -2893,6 +3166,8 @@
                             <div class="bg-cream-100 rounded-xl p-3 mb-3 text-xs space-y-1 border border-cream-200">
                                 <div class="flex justify-between"><span>取餐人：</span><strong>${order.customerName} (${order.diningType}${order.tableNumber ? ' ' + order.tableNumber : ''})</strong></div>
                                 ${order.customerPhone ? `<div class="flex justify-between"><span>電話：</span><a href="tel:${order.customerPhone}" class="text-sky-700 underline font-bold">${order.customerPhone}</a></div>` : ''}
+                                ${order.deliveryAddress ? `<div class="pt-1 border-t border-cream-300 text-amber-900"><span>📍 外送地址：</span><strong>${order.deliveryAddress}</strong>${order.deliveryFee ? ` (含運費 $${order.deliveryFee})` : ''}</div>` : ''}
+                                ${order.courierInfo ? `<div class="p-2 rounded-lg bg-orange-100 text-orange-900 font-bold text-[11px]">🚚 ${order.courierInfo}</div>` : ''}
                                 <div class="flex justify-between"><span>預計取餐：</span><strong>${order.pickupTime}</strong></div>
                                 ${order.note ? `<div class="text-rose-700 font-bold pt-1 border-t border-cream-300">備註：${order.note}</div>` : ''}
                             </div>
@@ -2905,6 +3180,7 @@
                                 <span class="text-xs text-stone-500">總金額</span>
                                 <span class="font-serif text-xl font-black text-wine-800">$${order.totalPrice}</span>
                             </div>
+                            ${order.diningType === '外送' && !isCancelled && order.courierStatus !== 'dispatched' ? `<button onclick="window.dispatchCourierForOrder('${order.id}')" class="w-full py-2 rounded-xl bg-orange-500 hover:bg-orange-600 text-white text-xs font-bold shadow-xs transition">📣 一鍵派車（示範）</button>` : ''}
                             ${isPending ? `<div class="grid grid-cols-3 gap-2"><button onclick="openCancelOrderModal('${order.id}', '${order.orderNumber}')" class="py-2 rounded-xl bg-rose-100 text-rose-800 text-xs font-bold">✕ 取消</button><button onclick="window.updateOrderStatus('${order.id}', 'preparing')" class="col-span-2 py-2 rounded-xl bg-amber-500 text-wine-950 text-xs font-bold">接單開始製作</button></div>`
                                 : isPreparing ? `<div class="grid grid-cols-3 gap-2"><button onclick="openCancelOrderModal('${order.id}', '${order.orderNumber}')" class="py-2 rounded-xl bg-rose-100 text-rose-800 text-xs font-bold">✕ 取消</button><button onclick="window.updateOrderStatus('${order.id}', 'completed')" class="col-span-2 py-2 rounded-xl bg-emerald-500 text-wine-950 text-xs font-bold">✓ 標記已完成</button></div>`
                                 : isCancelled ? `<div class="text-center text-xs text-rose-700 font-bold">原因：${order.cancelReason}</div>` : `<div class="text-center text-xs text-emerald-700 font-bold">已結案</div>`}
