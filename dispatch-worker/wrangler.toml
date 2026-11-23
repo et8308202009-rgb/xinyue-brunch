@@ -1,0 +1,15 @@
+name = "xinyue-dispatch"
+main = "worker.js"
+compatibility_date = "2024-11-01"
+
+# 每家店的 Lalamove 金鑰都存在這裡（前端永遠拿不到）
+[[kv_namespaces]]
+binding = "STORE_KEYS"
+id = "請執行 wrangler kv namespace create STORE_KEYS 後把 id 貼進來"
+
+[vars]
+ALLOWED_ORIGIN = "https://et8308202009-rgb.github.io"
+
+# 以下兩個用 secret 設定，不要寫在這裡：
+#   wrangler secret put ADMIN_TOKEN
+#   wrangler secret put GOOGLE_MAPS_KEY

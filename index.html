@@ -1428,27 +1428,57 @@
 
         window.dispatchCourierForOrder = async function(orderId) {
             const p = window.storeProfileState || {};
-            const provider = p.uberDirectEnabled ? 'Uber Direct' : 'Lalamove';
-            const drivers = ['陳師傅 (ABC-8899)', '林騎士 (MDE-5210)', '王專員 (NKR-3368)'];
-            const picked = drivers[Math.floor(Math.random() * drivers.length)];
-            const courierInfo = `${provider}｜司機 ${picked}｜預計 6 分鐘到店取餐`;
+            const lic = window.systemLicense || {};
+            const workerUrl = String((lic.dispatchWorkerUrl || p.dispatchWorkerUrl || '')).trim().replace(/\/+$/, '');
+            const order = (allCloudOrders || []).find(o => o.id === orderId);
+            if (!order) return;
 
-            if (!isFirebaseConfigured || !db || !currentUser) {
-                const target = allCloudOrders.find(o => o.id === orderId);
-                if (target) { target.courierStatus = 'dispatched'; target.courierInfo = courierInfo; }
-                if (window.renderOwnerOrders) window.renderOwnerOrders(allCloudOrders);
-                window.showToast(`🚚 已派車：${picked}`);
+            if (order.courierStatus === 'dispatched') {
+                window.showToast('這張訂單已經派過車了');
                 return;
             }
+            if (!workerUrl) {
+                window.showToast('尚未設定派車伺服器，請聯繫系統服務專員開通');
+                return;
+            }
+
+            window.showToast('正在向 Lalamove 詢價並派車…');
             try {
-                await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'orders', orderId), {
-                    courierStatus: 'dispatched',
-                    courierInfo
+                const res = await fetch(workerUrl + '/dispatch', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        storeId: STORE_ID,
+                        orderId,
+                        pickup: { name: p.storeName || '', phone: p.phone || '', address: p.address || '' },
+                        dropoff: { name: order.customerName || '', phone: order.customerPhone || '', address: order.deliveryAddress || '' },
+                        note: order.note || '',
+                        total: order.totalPrice || 0
+                    })
                 });
-                window.showToast(`🚚 已派車：${picked}`);
+                const data = await res.json().catch(() => ({}));
+                if (!data.ok) {
+                    window.showToast('派車失敗：' + (data.error || ('HTTP ' + res.status)));
+                    return;
+                }
+                const priceText = data.price ? `｜運費 $${data.price}` : '';
+                const courierInfo = `Lalamove 已派車（單號 ${data.orderRef || '-'}${priceText}）`;
+
+                if (!isFirebaseConfigured || !db || !currentUser) {
+                    order.courierStatus = 'dispatched';
+                    order.courierInfo = courierInfo;
+                    if (window.renderOwnerOrders) window.renderOwnerOrders(allCloudOrders);
+                } else {
+                    await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'orders', orderId), {
+                        courierStatus: 'dispatched',
+                        courierInfo,
+                        courierRef: data.orderRef || ''
+                    });
+                }
+                window.showToast('🚚 已成功派車' + (data.price ? `，運費 $${data.price}` : ''));
             } catch (e) {
                 console.error(e);
-                window.showToast('派車標記失敗，請重試');
+                window.showToast('派車請求失敗，請檢查網路或派車伺服器網址');
             }
         };
 
@@ -1737,6 +1767,7 @@
             deliveryBaseFee: 75,
             deliverySubsidyThreshold: 400,
             deliverySubsidyAmount: 30,
+            dispatchWorkerUrl: '',
             linepayEnabled: false,
             linepayChannelId: '',
             linepayChannelSecret: '',
@@ -2045,6 +2076,11 @@
                             </div>
                         </div>
 
+                        <div class="pt-1">
+                            <label class="block text-stone-600 mb-1 text-xs">派車伺服器網址（由總部提供，填好後「一鍵派車」才會真的叫車）</label>
+                            <input type="text" id="cfg-dispatch-url" oninput="markOwnerHasUnsavedChanges()" placeholder="https://xinyue-dispatch.xxxx.workers.dev" class="w-full px-3 py-2 rounded-xl bg-cream-100 border border-cream-300 font-mono text-[11px]">
+                        </div>
+
                         <div class="grid grid-cols-2 md:grid-cols-4 gap-3 text-xs pt-1">
                             <div>
                                 <label class="block text-stone-600 mb-1">最低外送門檻 ($)</label>
@@ -2342,6 +2378,7 @@
                 deliveryBaseFee: Number(document.getElementById('cfg-deliv-fee')?.value || 75),
                 deliverySubsidyThreshold: Number(document.getElementById('cfg-deliv-sub-min')?.value || 400),
                 deliverySubsidyAmount: Number(document.getElementById('cfg-deliv-sub-amt')?.value || 30),
+                dispatchWorkerUrl: document.getElementById('cfg-dispatch-url')?.value.trim() || window.storeProfileState.dispatchWorkerUrl || '',
                 linepayChannelId: document.getElementById('cfg-lp-channel-id')?.value.trim() || '',
                 linepayChannelSecret: document.getElementById('cfg-lp-channel-secret')?.value.trim() || '',
                 jkopayMerchantId: document.getElementById('cfg-jko-merchant-id')?.value.trim() || '',
@@ -2438,6 +2475,7 @@
             setVal('cfg-deliv-fee', p.deliveryBaseFee ?? 75);
             setVal('cfg-deliv-sub-min', p.deliverySubsidyThreshold ?? 400);
             setVal('cfg-deliv-sub-amt', p.deliverySubsidyAmount ?? 30);
+            setVal('cfg-dispatch-url', p.dispatchWorkerUrl || '');
             setVal('cfg-tax-id', p.taxId);
             setVal('cfg-invoice-prefix', p.invoicePrefix);
             setVal('cfg-closed-days-text', p.closedDaysText);
