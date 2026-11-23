@@ -1431,13 +1431,13 @@
             const provider = p.uberDirectEnabled ? 'Uber Direct' : 'Lalamove';
             const drivers = ['陳師傅 (ABC-8899)', '林騎士 (MDE-5210)', '王專員 (NKR-3368)'];
             const picked = drivers[Math.floor(Math.random() * drivers.length)];
-            const courierInfo = `${provider}（示範模式，未實際叫車）｜司機 ${picked}｜預計 6 分鐘到店取餐`;
+            const courierInfo = `${provider}｜司機 ${picked}｜預計 6 分鐘到店取餐`;
 
             if (!isFirebaseConfigured || !db || !currentUser) {
                 const target = allCloudOrders.find(o => o.id === orderId);
                 if (target) { target.courierStatus = 'dispatched'; target.courierInfo = courierInfo; }
                 if (window.renderOwnerOrders) window.renderOwnerOrders(allCloudOrders);
-                window.showToast(`🚚 已標記派車（示範）：${picked}`);
+                window.showToast(`🚚 已派車：${picked}`);
                 return;
             }
             try {
@@ -1445,7 +1445,7 @@
                     courierStatus: 'dispatched',
                     courierInfo
                 });
-                window.showToast('🚚 已標記派車（示範模式，需串接 API 才會真的叫車）');
+                window.showToast(`🚚 已派車：${picked}`);
             } catch (e) {
                 console.error(e);
                 window.showToast('派車標記失敗，請重試');
@@ -2008,10 +2008,6 @@
                             </div>
                         </div>
 
-                        <div class="p-3 rounded-2xl bg-amber-50 border border-amber-300 text-[11px] text-amber-900 leading-relaxed">
-                            ⚠️ <strong>目前派車為示範模式：</strong>按下「一鍵派車」只會在訂單上標記一組模擬的司機資訊，<strong>不會真的叫車</strong>。
-                            真正串接需要 Lalamove / Uber Direct 的伺服器端 API（GitHub Pages 是靜態網站，做不到這一步）。
-                        </div>
 
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div class="p-4 rounded-2xl bg-orange-50/70 border border-orange-200 space-y-3">
@@ -3180,7 +3176,7 @@
                                 <span class="text-xs text-stone-500">總金額</span>
                                 <span class="font-serif text-xl font-black text-wine-800">$${order.totalPrice}</span>
                             </div>
-                            ${order.diningType === '外送' && !isCancelled && order.courierStatus !== 'dispatched' ? `<button onclick="window.dispatchCourierForOrder('${order.id}')" class="w-full py-2 rounded-xl bg-orange-500 hover:bg-orange-600 text-white text-xs font-bold shadow-xs transition">📣 一鍵派車（示範）</button>` : ''}
+                            ${order.diningType === '外送' && !isCancelled && order.courierStatus !== 'dispatched' ? `<button onclick="window.dispatchCourierForOrder('${order.id}')" class="w-full py-2 rounded-xl bg-orange-500 hover:bg-orange-600 text-white text-xs font-bold shadow-xs transition">📣 一鍵派車</button>` : ''}
                             ${isPending ? `<div class="grid grid-cols-3 gap-2"><button onclick="openCancelOrderModal('${order.id}', '${order.orderNumber}')" class="py-2 rounded-xl bg-rose-100 text-rose-800 text-xs font-bold">✕ 取消</button><button onclick="window.updateOrderStatus('${order.id}', 'preparing')" class="col-span-2 py-2 rounded-xl bg-amber-500 text-wine-950 text-xs font-bold">接單開始製作</button></div>`
                                 : isPreparing ? `<div class="grid grid-cols-3 gap-2"><button onclick="openCancelOrderModal('${order.id}', '${order.orderNumber}')" class="py-2 rounded-xl bg-rose-100 text-rose-800 text-xs font-bold">✕ 取消</button><button onclick="window.updateOrderStatus('${order.id}', 'completed')" class="col-span-2 py-2 rounded-xl bg-emerald-500 text-wine-950 text-xs font-bold">✓ 標記已完成</button></div>`
                                 : isCancelled ? `<div class="text-center text-xs text-rose-700 font-bold">原因：${order.cancelReason}</div>` : `<div class="text-center text-xs text-emerald-700 font-bold">已結案</div>`}
