@@ -1209,6 +1209,9 @@
         function subscribeToHqGlobalSecurity() {
             if (!currentUser || !db) return;
             const secRef = doc(db, 'artifacts', appId, 'public', 'data', 'hq_config', 'security');
+            onSnapshot(doc(db, 'artifacts', appId, 'public', 'data', 'hq_config', 'config'), (snap) => {
+                window.globalDispatchWorkerUrl = snap.exists() ? (snap.data().dispatchWorkerUrl || '') : '';
+            }, () => {});
             onSnapshot(secRef, (docSnap) => {
                 if (docSnap.exists()) {
                     const d = docSnap.data();
@@ -1505,7 +1508,7 @@
         window.dispatchCourierForOrder = async function(orderId) {
             const p = window.storeProfileState || {};
             const lic = window.systemLicense || {};
-            const workerUrl = String((lic.dispatchWorkerUrl || p.dispatchWorkerUrl || '')).trim().replace(/\/+$/, '');
+            const workerUrl = String((lic.dispatchWorkerUrl || p.dispatchWorkerUrl || window.globalDispatchWorkerUrl || '')).trim().replace(/\/+$/, '');
             const order = (allCloudOrders || []).find(o => o.id === orderId);
             if (!order) return;
 

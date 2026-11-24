@@ -2,14 +2,21 @@ name = "xinyue-dispatch"
 main = "worker.js"
 compatibility_date = "2024-11-01"
 
-# 每家店的 Lalamove 金鑰都存在這裡（前端永遠拿不到）
+# 店家專屬金鑰儲存空間（前端拿不到）
+# 建立指令： wrangler kv namespace create STORE_KEYS
 [[kv_namespaces]]
 binding = "STORE_KEYS"
-id = "請執行 wrangler kv namespace create STORE_KEYS 後把 id 貼進來"
+id = "貼上 wrangler kv namespace create STORE_KEYS 產生的 id"
 
 [vars]
+# 允許叫用這個 Worker 的網站（你的 GitHub Pages）
 ALLOWED_ORIGIN = "https://et8308202009-rgb.github.io"
+# 派車車型：MOTORCYCLE 機車 / CAR 汽車 / VAN 廂型車
+SERVICE_TYPE = "MOTORCYCLE"
 
-# 以下兩個用 secret 設定，不要寫在這裡：
-#   wrangler secret put ADMIN_TOKEN
-#   wrangler secret put GOOGLE_MAPS_KEY
+# ───────── 以下三組用 secret 設定，不要寫在檔案裡 ─────────
+# wrangler secret put ADMIN_TOKEN       總部管理密鑰（自訂長字串）
+# wrangler secret put LALAMOVE_KEY      全域預設 Lalamove API Key（所有店共用）
+# wrangler secret put LALAMOVE_SECRET   全域預設 Lalamove API Secret
+# wrangler secret put LALAMOVE_MARKET   市場代碼，台灣請填 TW
+# wrangler secret put GOOGLE_MAPS_KEY   （選填）有就用 Google 定位，沒有則自動用免費 Nominatim
