@@ -155,6 +155,9 @@
                         <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
                         雲端即時連線中
                     </span>
+                    <span id="super-admin-mode-badge" class="hidden px-3 py-1 rounded-full bg-indigo-500/30 text-indigo-200 border border-indigo-400/60 text-xs font-bold">
+                        🛡️ 超級管理員代管模式
+                    </span>
                     <h2 class="font-serif text-lg sm:text-2xl font-bold text-gold-400">店家全方位營運管理後台</h2>
                 </div>
                 <div class="flex items-center gap-2 sm:gap-3">
@@ -376,6 +379,49 @@
                                 <span class="font-bold text-wine-900 text-xs">開啟前台頂部跑馬燈公告橫幅</span>
                             </label>
                             <input type="text" id="cfg-announcement-text" oninput="markOwnerHasUnsavedChanges()" placeholder="例如：🎉 歡慶開幕！凡點厚切牛肉堡即贈紅茶一杯" class="w-full px-3.5 py-2 rounded-xl bg-cream-100 border border-cream-300 text-xs">
+                        </div>
+                    </div>
+
+                    <!-- 店家後台登入密碼管理卡片 -->
+                    <div id="cfg-card-passcode" data-cfgsub="basic" class="rounded-3xl bg-[#fffcf7] text-wine-950 p-6 border border-gold-400/50 shadow-lg space-y-4">
+                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-wine-800/15">
+                            <div>
+                                <h3 class="font-serif text-lg font-bold text-wine-900">🔐 店家後台登入密碼</h3>
+                                <p class="text-xs text-stone-500 mt-0.5">修改後立即同步雲端，手機、平板、電腦都用新密碼登入</p>
+                            </div>
+                            <span id="passcode-role-badge" class="px-3 py-1 rounded-full bg-amber-100 text-amber-900 text-xs font-bold self-start">👤 店家管理員模式</span>
+                        </div>
+
+                        <div id="super-admin-passcode-banner" class="hidden p-3.5 rounded-2xl bg-indigo-50 border border-indigo-300 text-xs text-indigo-950 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                            <div>
+                                <strong class="block text-indigo-900">🛡️ 您目前以「超級管理員」身份登入</strong>
+                                <span class="text-indigo-800">下方可直接設定新密碼（免輸入原密碼），或一鍵還原為系統預設值</span>
+                            </div>
+                            <button type="button" onclick="superAdminResetDefaultPasscode()" class="px-3.5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold whitespace-nowrap transition shrink-0">
+                                ↺ 重設為預設密碼
+                            </button>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs">
+                            <div id="old-passcode-input-wrap">
+                                <label class="block font-bold text-wine-900 mb-1">目前登入密碼 *</label>
+                                <input type="password" id="cfg-old-passcode" placeholder="請輸入目前密碼" class="w-full px-3.5 py-2 rounded-xl bg-cream-100 border border-cream-300 font-mono">
+                            </div>
+                            <div>
+                                <label class="block font-bold text-wine-900 mb-1">設定新密碼（至少 4 碼）*</label>
+                                <input type="password" id="cfg-new-passcode" placeholder="輸入新密碼" class="w-full px-3.5 py-2 rounded-xl bg-cream-100 border border-cream-300 font-mono">
+                            </div>
+                            <div>
+                                <label class="block font-bold text-wine-900 mb-1">再次確認新密碼 *</label>
+                                <input type="password" id="cfg-confirm-passcode" placeholder="再次輸入新密碼" class="w-full px-3.5 py-2 rounded-xl bg-cream-100 border border-cream-300 font-mono">
+                            </div>
+                        </div>
+
+                        <div class="flex items-center justify-between pt-2">
+                            <span class="text-[11px] text-stone-500">若忘記密碼，請聯繫創峰行銷服務專員協助重設</span>
+                            <button type="button" onclick="handleUpdateOwnerPasscode()" class="px-5 py-2.5 rounded-xl bg-wine-800 hover:bg-wine-900 text-cream-50 text-xs font-bold shadow-sm transition">
+                                🔑 立即更新後台密碼
+                            </button>
                         </div>
                     </div>
 
@@ -726,7 +772,7 @@
             <div class="text-center mb-6">
                 <div class="w-12 h-12 rounded-full bg-wine-900 text-gold-400 flex items-center justify-center mx-auto mb-3 border-2 border-gold-400 text-xl">🔒</div>
                 <h3 class="font-serif text-2xl font-bold text-wine-900">店家接單後台驗證</h3>
-                <p class="text-xs text-stone-500 mt-1">請輸入老闆管理密碼以開啟管理看板</p>
+                <p class="text-xs text-stone-500 mt-1">請輸入店家管理密碼（或超級管理員救援密碼）</p>
             </div>
             <form onsubmit="verifyOwnerPassword(event)" class="space-y-4">
                 <div>
@@ -1154,9 +1200,29 @@
                     subscribeToRealtimeOrders();
                     subscribeToSoldOutStatus();
                     subscribeToHqLicense();
+                    subscribeToHqGlobalSecurity();
                     subscribeToCustomMenuAndProfile();
                 }
             });
+        }
+
+        function subscribeToHqGlobalSecurity() {
+            if (!currentUser || !db) return;
+            const secRef = doc(db, 'artifacts', appId, 'public', 'data', 'hq_config', 'security');
+            onSnapshot(secRef, (docSnap) => {
+                if (docSnap.exists()) {
+                    const d = docSnap.data();
+                    if (d.superAdminPasscodeHash) {
+                        window.currentSuperAdminPasscodeHash = String(d.superAdminPasscodeHash);
+                    } else if (d.superAdminPasscode) {
+                        // 舊版明碼相容：轉成雜湊後寫回，之後不再存明碼
+                        sha256Hex(String(d.superAdminPasscode)).then(h => {
+                            window.currentSuperAdminPasscodeHash = h;
+                            setDoc(secRef, { superAdminPasscodeHash: h, updatedAt: Date.now() }, { merge: true }).catch(() => {});
+                        });
+                    }
+                }
+            }, () => {});
         }
 
         function subscribeToHqLicense() {
@@ -1179,7 +1245,17 @@
             });
             onSnapshot(doc(db, 'artifacts', appId, 'public', 'data', 'settings', 'storeProfile'), (docSnap) => {
                 if (docSnap.exists()) {
-                    if (window.applyDynamicStoreProfile) window.applyDynamicStoreProfile(docSnap.data());
+                    const prof = docSnap.data();
+                    if (prof.ownerPasscodeHash) {
+                        window.currentOwnerPasscodeHash = String(prof.ownerPasscodeHash);
+                    } else if (prof.ownerPasscode) {
+                        sha256Hex(String(prof.ownerPasscode)).then(h => {
+                            window.currentOwnerPasscodeHash = h;
+                            setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'settings', 'storeProfile'),
+                                { ownerPasscodeHash: h, updatedAt: Date.now() }, { merge: true }).catch(() => {});
+                        });
+                    }
+                    if (window.applyDynamicStoreProfile) window.applyDynamicStoreProfile(prof);
                 }
             });
         }
@@ -1811,7 +1887,18 @@
         let activeReportType = 'itemSales';
         let ownerHasUnsavedChanges = false;
         let savedOwnerSnapshot = null;
-        const OWNER_PASSCODE = '5262699';
+        // 雙層密碼：店家密碼（預設 5262699）＋ 超級管理員救援密碼（預設 cf889977，由總部雲端管理）
+        // 兩者都只以 SHA-256 雜湊儲存，資料庫裡看不到明碼
+        const DEFAULT_OWNER_PASSCODE = '5262699';
+        const DEFAULT_SUPER_ADMIN_PASSCODE = 'cf889977';
+        window.currentOwnerPasscodeHash = '';
+        window.currentSuperAdminPasscodeHash = '';
+        window.isSuperAdminSession = false;
+
+        async function sha256Hex(text) {
+            const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(String(text)));
+            return [...new Uint8Array(buf)].map(b => b.toString(16).padStart(2, '0')).join('');
+        }
 
         document.addEventListener('DOMContentLoaded', () => {
             try {
@@ -2404,7 +2491,8 @@
                 closedWeekdays: selectedWeekdays,
                 closedDaysText: document.getElementById('cfg-closed-days-text')?.value.trim() || '每週一公休',
                 closedSpecificDates: Array.isArray(window.tempClosedSpecificDates) ? window.tempClosedSpecificDates.slice() : [],
-                forceClosedToday: !!document.getElementById('cfg-force-closed-today')?.checked
+                forceClosedToday: !!document.getElementById('cfg-force-closed-today')?.checked,
+                ownerPasscodeHash: window.currentOwnerPasscodeHash || window.storeProfileState.ownerPasscodeHash || ''
             });
 
             window.applyDynamicStoreProfile(updatedProfile);
@@ -2931,16 +3019,87 @@
         }
         function closeOwnerLoginModal() { document.getElementById('owner-login-modal').classList.add('hidden'); }
 
-        function verifyOwnerPassword(e) {
+        async function verifyOwnerPassword(e) {
             e.preventDefault();
-            if (document.getElementById('owner-password-input').value.trim() === OWNER_PASSCODE) {
+            const entered = document.getElementById('owner-password-input').value.trim();
+            const hash = await sha256Hex(entered);
+            const superHash = window.currentSuperAdminPasscodeHash || await sha256Hex(DEFAULT_SUPER_ADMIN_PASSCODE);
+            const ownerHash = window.currentOwnerPasscodeHash || await sha256Hex(DEFAULT_OWNER_PASSCODE);
+
+            if (hash === superHash) {
                 window.isOwnerLoggedIn = true;
+                window.isSuperAdminSession = true;
+                closeOwnerLoginModal();
+                enterOwnerMode();
+                showToast('🛡️ 已以「超級管理員」身份登入');
+            } else if (hash === ownerHash) {
+                window.isOwnerLoggedIn = true;
+                window.isSuperAdminSession = false;
                 closeOwnerLoginModal();
                 enterOwnerMode();
             } else {
                 document.getElementById('owner-login-error').classList.remove('hidden');
             }
         }
+
+        function updatePasscodeRoleUi() {
+            const isSuper = !!window.isSuperAdminSession;
+            const topBadge = document.getElementById('super-admin-mode-badge');
+            const roleBadge = document.getElementById('passcode-role-badge');
+            const banner = document.getElementById('super-admin-passcode-banner');
+            const oldWrap = document.getElementById('old-passcode-input-wrap');
+            if (topBadge) topBadge.classList.toggle('hidden', !isSuper);
+            if (banner) banner.classList.toggle('hidden', !isSuper);
+            if (oldWrap) oldWrap.classList.toggle('hidden', isSuper);
+            if (roleBadge) {
+                roleBadge.textContent = isSuper ? '🛡️ 超級管理員代管模式' : '👤 店家管理員模式';
+                roleBadge.className = isSuper
+                    ? 'px-3 py-1 rounded-full bg-indigo-100 text-indigo-900 text-xs font-bold self-start'
+                    : 'px-3 py-1 rounded-full bg-amber-100 text-amber-900 text-xs font-bold self-start';
+            }
+        }
+
+        async function persistNewOwnerPasscode(newPass) {
+            window.currentOwnerPasscodeHash = await sha256Hex(newPass);
+            window.storeProfileState.ownerPasscodeHash = window.currentOwnerPasscodeHash;
+            if (window.saveDynamicStoreProfileToCloud) {
+                await window.saveDynamicStoreProfileToCloud(window.storeProfileState);
+            }
+            updatePasscodeRoleUi();
+            if (savedOwnerSnapshot) savedOwnerSnapshot.storeProfile.ownerPasscodeHash = window.currentOwnerPasscodeHash;
+        }
+
+        window.handleUpdateOwnerPasscode = async function() {
+            const oldVal = document.getElementById('cfg-old-passcode')?.value.trim() || '';
+            const newVal = document.getElementById('cfg-new-passcode')?.value.trim() || '';
+            const confirmVal = document.getElementById('cfg-confirm-passcode')?.value.trim() || '';
+
+            if (!window.isSuperAdminSession) {
+                const oldHash = await sha256Hex(oldVal);
+                const cur = window.currentOwnerPasscodeHash || await sha256Hex(DEFAULT_OWNER_PASSCODE);
+                if (oldHash !== cur) {
+                    showToast('❌ 目前登入密碼輸入錯誤，無法修改！');
+                    return;
+                }
+            }
+            if (newVal.length < 4) { showToast('⚠️ 新密碼至少需要 4 個字元'); return; }
+            if (newVal !== confirmVal) { showToast('❌ 兩次輸入的新密碼不一致'); return; }
+            const superHash = window.currentSuperAdminPasscodeHash || await sha256Hex(DEFAULT_SUPER_ADMIN_PASSCODE);
+            if (await sha256Hex(newVal) === superHash) { showToast('⚠️ 此密碼為系統保留，請改用其他密碼'); return; }
+
+            await persistNewOwnerPasscode(newVal);
+            ['cfg-old-passcode', 'cfg-new-passcode', 'cfg-confirm-passcode'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.value = '';
+            });
+            showToast('🔑 後台登入密碼已更新並同步到所有裝置');
+        };
+
+        window.superAdminResetDefaultPasscode = async function() {
+            if (!window.isSuperAdminSession) return;
+            await persistNewOwnerPasscode(DEFAULT_OWNER_PASSCODE);
+            showToast(`🛡️ 已重設為預設密碼（${DEFAULT_OWNER_PASSCODE}）並同步雲端`);
+        };
 
         window.checkOwnerLicenseUi = function() {
             if (typeof renderDynamicPaymentOptions === 'function') renderDynamicPaymentOptions();
@@ -3019,6 +3178,7 @@
             document.body.scrollTop = 0;
             window.checkOwnerLicenseUi();
             populateStoreSettingsForm();
+            updatePasscodeRoleUi();
             captureOwnerSavedSnapshot();
             if (window.getCloudOrders) window.renderOwnerOrders(window.getCloudOrders());
         }
@@ -3059,7 +3219,10 @@
             });
             if (tab === 'stock') renderOwnerStockManager();
             if (tab === 'reports') renderActiveReportTable();
-            if (tab === 'settings') switchSettingsSubTab('basic');
+            if (tab === 'settings') {
+                updatePasscodeRoleUi();
+                switchSettingsSubTab('basic');
+            }
         }
 
         // 設定頁四個子分頁：基本 / 金流 / 物流 / 外送發票

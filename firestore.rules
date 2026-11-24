@@ -6,19 +6,26 @@ service cloud.firestore {
       allow read, create, update, delete: if request.auth != null;
     }
 
-    // 2. 餐點售完庫存設定：允許讀取與店家後台切換
+    // 2. 餐點售完、菜單、店舖設定：允許讀取與店家後台儲存
     match /artifacts/{appId}/public/data/settings/{settingId} {
       allow read, write: if request.auth != null;
     }
 
-    // 3. 【總部授權資料】所有店家僅能「讀取」自己的狀態；
-    // 只有「總部管理員帳號」的登入 UID 才能新增或修改開關與到期日。
-    // 這是身分驗證（Firebase Auth UID），不是前端密碼，外部工程師拿到原始碼也無法竄改。
+    // 3. 總部授權資料：店家只能讀取；只有總部管理員 UID 能新增或修改
     match /artifacts/{appId}/public/data/hq_stores/{storeId} {
       allow read: if request.auth != null;
       allow create, update: if request.auth != null
                             && request.auth.uid == "PaQjiVn6dZdxe43kOJL2NuTyHKM2";
-      allow delete: if false; // 禁止從前端刪除任何店家授權紀錄
+      allow delete: if false;
+    }
+
+    // 4. 全域安全設定（超級管理員救援密碼雜湊）：店家端需讀取才能驗證登入，
+    //    因此允許已驗證用戶讀取；寫入僅限總部管理員 UID。
+    match /artifacts/{appId}/public/data/hq_config/{docId} {
+      allow read: if request.auth != null;
+      allow create, update: if request.auth != null
+                            && request.auth.uid == "PaQjiVn6dZdxe43kOJL2NuTyHKM2";
+      allow delete: if false;
     }
   }
 }
