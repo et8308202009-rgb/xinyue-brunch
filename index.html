@@ -82,9 +82,12 @@
 </head>
 <body class="font-sans antialiased selection:bg-wine-800 selection:text-cream-50">
 
-    <!-- 前台公告橫幅 (可由老闆後台即時開啟) -->
-    <div id="store-announcement-bar" class="hidden bg-gradient-to-r from-gold-600 via-gold-500 to-gold-600 text-wine-950 text-xs sm:text-sm font-bold py-2 px-4 text-center shadow-sm">
-        <span id="store-announcement-text"></span>
+    <!-- 前台公告橫幅 -->
+    <div id="store-announcement-bar" class="hidden bg-gradient-to-r from-amber-500 via-gold-400 to-amber-500 text-wine-950 py-2.5 sm:py-3.5 px-4 shadow-md border-b border-wine-900/20">
+        <div class="max-w-6xl mx-auto flex items-center justify-center gap-2.5 text-center">
+            <span class="px-2.5 py-0.5 rounded-full bg-wine-950 text-gold-400 text-xs sm:text-sm font-black tracking-wider shrink-0 shadow-xs">📢 公告</span>
+            <span id="store-announcement-text" class="text-sm sm:text-base md:text-lg font-black tracking-wide leading-snug"></span>
+        </div>
     </div>
 
     <!-- 頂部導覽列 -->
@@ -131,12 +134,10 @@
 
     <!-- 老闆專屬全方位管理後台 -->
     <section id="owner-dashboard" class="hidden min-h-screen bg-[#1f0508] text-cream-50 pb-28">
-        <!-- 系統授權到期前 5 天溫馨提醒橫幅 -->
         <div id="owner-expiring-banner" class="hidden bg-amber-500 text-wine-950 px-4 py-2.5 text-center text-xs sm:text-sm font-bold">
             ⚠️ 提醒：您的系統服務授權將於 <span id="owner-expire-date-text"></span> 到期，請聯繫服務專員辦理續約以免影響接單功能。
         </div>
 
-        <!-- 總部停權鎖定遮罩 -->
         <div id="owner-suspended-overlay" class="hidden fixed inset-0 z-50 bg-wine-950/95 backdrop-blur-md flex items-center justify-center p-4">
             <div class="max-w-md w-full rounded-3xl bg-[#fffcf7] text-wine-950 p-7 border-2 border-rose-500 shadow-2xl text-center space-y-4">
                 <div class="w-16 h-16 rounded-full bg-rose-100 text-rose-700 flex items-center justify-center mx-auto text-3xl border border-rose-300">🔒</div>
@@ -149,33 +150,35 @@
         </div>
 
         <div class="bg-wine-950 border-b border-gold-400/40 sticky top-16 sm:top-20 z-30 shadow-xl">
-            <div class="max-w-6xl mx-auto px-4 sm:px-6 py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                <div class="flex items-center gap-3">
-                    <span class="px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 text-xs font-bold flex items-center gap-1.5">
-                        <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
-                        雲端即時連線中
+            <div class="max-w-6xl mx-auto px-3.5 sm:px-6 py-3 sm:py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 sm:gap-4">
+                <div class="flex items-center justify-between sm:justify-start gap-2.5 flex-wrap">
+                    <h2 class="font-serif text-base sm:text-2xl font-bold text-gold-400 tracking-wide">店家營運管理後台</h2>
+                    <span class="px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 text-[11px] font-bold inline-flex items-center gap-1.5 whitespace-nowrap">
+                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping"></span>
+                        雲端連線中
                     </span>
-                    <span id="super-admin-mode-badge" class="hidden px-3 py-1 rounded-full bg-indigo-500/30 text-indigo-200 border border-indigo-400/60 text-xs font-bold">
-                        🛡️ 超級管理員代管模式
+                    <span id="cloud-relay-active-badge" class="hidden px-2.5 py-0.5 rounded-full bg-amber-500/25 text-amber-300 border border-amber-400/60 text-[11px] font-bold whitespace-nowrap">
+                        🖨️ 雲端出單中繼站開啟中
                     </span>
-                    <h2 class="font-serif text-lg sm:text-2xl font-bold text-gold-400">店家全方位營運管理後台</h2>
+                    <span id="super-admin-mode-badge" class="hidden px-2.5 py-0.5 rounded-full bg-indigo-500/30 text-indigo-200 border border-indigo-400/60 text-[11px] font-bold whitespace-nowrap">
+                        🛡️ 超級管理員
+                    </span>
                 </div>
-                <div class="flex items-center gap-2 sm:gap-3">
-                    <button onclick="triggerPwaInstallOrGuide()" id="pwa-install-btn" class="px-3 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold shadow-sm transition flex items-center gap-1">
-                        <span>📲 安裝桌面接單 App</span>
+                <div class="grid grid-cols-3 sm:flex items-center gap-2">
+                    <button onclick="triggerPwaInstallOrGuide()" id="pwa-install-btn" class="px-2.5 sm:px-3.5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold shadow-sm transition flex items-center justify-center gap-1 whitespace-nowrap">
+                        <span>📲 安裝App</span>
                     </button>
-                    <button onclick="playNotificationBell()" class="px-3 py-2 rounded-xl bg-wine-800 hover:bg-wine-700 text-cream-100 border border-gold-400/30 text-xs font-medium transition">
-                        🔔 測試提示音
+                    <button onclick="playNotificationBell()" class="px-2.5 sm:px-3.5 py-2 rounded-xl bg-wine-800 hover:bg-wine-700 text-cream-100 border border-gold-400/30 text-xs font-medium transition flex items-center justify-center gap-1 whitespace-nowrap">
+                        <span>🔔 提示音</span>
                     </button>
-                    <button onclick="handleExitOwnerModeClick()" class="px-4 py-2 rounded-xl bg-cream-100 hover:bg-white text-wine-950 text-xs font-bold transition">
-                        返回前台點餐頁
+                    <button onclick="handleExitOwnerModeClick()" class="px-2.5 sm:px-4 py-2 rounded-xl bg-cream-100 hover:bg-white text-wine-950 text-xs font-bold transition flex items-center justify-center whitespace-nowrap">
+                        ← 返回前台
                     </button>
                 </div>
             </div>
         </div>
 
         <div class="max-w-6xl mx-auto px-4 sm:px-6 pt-6">
-            <!-- 主功能分頁列 -->
             <div class="flex items-center gap-2 overflow-x-auto pb-4 mb-6 border-b border-gold-400/20">
                 <button onclick="switchOwnerTab('orders')" id="owner-tab-orders" class="px-4 py-2.5 rounded-full text-xs sm:text-sm font-bold bg-gradient-to-r from-gold-500 to-gold-400 text-wine-950 shadow-md whitespace-nowrap transition">📋 即時接單管理</button>
                 <button onclick="switchOwnerTab('stock')" id="owner-tab-stock" class="px-4 py-2.5 rounded-full text-xs sm:text-sm font-medium bg-wine-900 text-cream-200 border border-gold-400/30 hover:bg-wine-800 whitespace-nowrap transition">🍽️ 菜單與售完管理 <span id="sold-out-count-badge" class="ml-1 px-1.5 py-0.5 text-[10px] rounded-full bg-rose-600 text-white hidden">0</span></button>
@@ -184,62 +187,43 @@
             </div>
 
             <!-- ================= 分頁 1：即時接單管理 ================= -->
-            <div id="owner-orders-section" class="space-y-6">
-                <!-- 日期與時段篩選條 -->
-                <div class="p-4 rounded-2xl bg-wine-900/60 border border-gold-400/30 flex flex-wrap items-center justify-between gap-3 text-xs">
-                    <div class="flex flex-wrap items-center gap-2">
-                        <span class="text-gold-400 font-bold">📅 訂單日期/時段：</span>
-                        <input type="date" id="orders-date-start" onchange="refreshOwnerOrdersView()" class="px-2.5 py-1.5 rounded-lg bg-wine-950 border border-gold-400/40 text-cream-50">
-                        <span>~</span>
-                        <input type="date" id="orders-date-end" onchange="refreshOwnerOrdersView()" class="px-2.5 py-1.5 rounded-lg bg-wine-950 border border-gold-400/40 text-cream-50">
-                        <input type="time" id="orders-time-start" value="00:00" onchange="refreshOwnerOrdersView()" class="px-2 py-1.5 rounded-lg bg-wine-950 border border-gold-400/40 text-cream-50">
-                        <span>~</span>
-                        <input type="time" id="orders-time-end" value="23:59" onchange="refreshOwnerOrdersView()" class="px-2 py-1.5 rounded-lg bg-wine-950 border border-gold-400/40 text-cream-50">
-                    </div>
-                    <div class="flex items-center gap-1.5">
-                        <button onclick="setOrderDatePreset('today')" class="px-2.5 py-1 rounded-lg bg-wine-800 hover:bg-wine-700 text-cream-100 border border-gold-400/30">今日</button>
-                        <button onclick="setOrderDatePreset('week')" class="px-2.5 py-1 rounded-lg bg-wine-800 hover:bg-wine-700 text-cream-100 border border-gold-400/30">近7日</button>
-                        <button onclick="setOrderDatePreset('all')" class="px-2.5 py-1 rounded-lg bg-gold-500 text-wine-950 font-bold">全部時間</button>
-                    </div>
-                </div>
-
-                <div class="p-3.5 rounded-2xl bg-wine-900/50 border border-gold-400/25 flex flex-wrap items-center justify-between gap-3 text-xs">
-                    <div class="flex items-center gap-2 text-cream-200/85">
-                        <span class="text-gold-400 font-bold">🚀 全通路整合演示：</span>
-                        <span>產生一筆測試用的外送平台訂單，用來確認看板與報表會怎麼呈現</span>
-                    </div>
-                    <div class="flex items-center gap-2">
-                        <button onclick="simulateDeliveryOrder('ubereats')" class="px-3 py-1.5 rounded-xl bg-emerald-700 hover:bg-emerald-600 text-white font-bold shadow-sm transition flex items-center gap-1">
-                            <span>🛵 模擬 UberEats 進單</span>
-                        </button>
-                        <button onclick="simulateDeliveryOrder('foodpanda')" class="px-3 py-1.5 rounded-xl bg-pink-600 hover:bg-pink-500 text-white font-bold shadow-sm transition flex items-center gap-1">
-                            <span>🐼 模擬 Foodpanda 進單</span>
-                        </button>
-                    </div>
-                </div>
-
-                <!-- 統計卡片 -->
-                <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-                    <div class="p-4 rounded-2xl bg-wine-900/70 border border-gold-400/30">
+            <div id="owner-orders-section" class="space-y-4 sm:space-y-6">
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
+                    <div class="p-3.5 sm:p-4 rounded-2xl bg-wine-900/70 border border-gold-400/30">
                         <span class="text-xs text-cream-200/70 block">待處理新訂單</span>
-                        <span id="stat-pending" class="font-serif text-3xl font-black text-amber-400 mt-1 block">0</span>
+                        <span id="stat-pending" class="font-serif text-2xl sm:text-3xl font-black text-amber-400 mt-1 block">0</span>
                     </div>
-                    <div class="p-4 rounded-2xl bg-wine-900/70 border border-gold-400/30">
+                    <div class="p-3.5 sm:p-4 rounded-2xl bg-wine-900/70 border border-gold-400/30">
                         <span class="text-xs text-cream-200/70 block">廚房製作中</span>
-                        <span id="stat-preparing" class="font-serif text-3xl font-black text-sky-400 mt-1 block">0</span>
+                        <span id="stat-preparing" class="font-serif text-2xl sm:text-3xl font-black text-sky-400 mt-1 block">0</span>
                     </div>
-                    <div class="p-4 rounded-2xl bg-wine-900/70 border border-gold-400/30">
+                    <div class="p-3.5 sm:p-4 rounded-2xl bg-wine-900/70 border border-gold-400/30">
                         <span class="text-xs text-cream-200/70 block">已完成訂單</span>
-                        <span id="stat-completed" class="font-serif text-3xl font-black text-emerald-400 mt-1 block">0</span>
+                        <span id="stat-completed" class="font-serif text-2xl sm:text-3xl font-black text-emerald-400 mt-1 block">0</span>
                     </div>
-                    <div class="p-4 rounded-2xl bg-wine-900/70 border border-gold-400/30">
+                    <div class="p-3.5 sm:p-4 rounded-2xl bg-wine-900/70 border border-gold-400/30">
                         <span class="text-xs text-cream-200/70 block">篩選累計接單金額</span>
-                        <span id="stat-revenue" class="font-serif text-3xl font-black text-gold-400 mt-1 block">$0</span>
+                        <span id="stat-revenue" class="font-serif text-2xl sm:text-3xl font-black text-gold-400 mt-1 block">$0</span>
                     </div>
                 </div>
 
-                <!-- 付款對帳提示 -->
-                <div class="px-4 py-3 rounded-2xl bg-wine-900/50 border border-gold-400/25 flex flex-wrap items-center justify-between gap-2 text-xs text-cream-200/85">
+                <!-- 🍳 待出餐點即時彙總牆 -->
+                <div id="kitchen-batch-summary-card" class="p-3.5 sm:p-4 rounded-2xl bg-gradient-to-r from-amber-950/85 via-wine-900/90 to-wine-950/90 border border-amber-400/45 shadow-md space-y-2.5">
+                    <div class="flex items-center justify-between gap-2">
+                        <div class="flex items-center gap-2 flex-wrap">
+                            <span class="text-xs sm:text-sm font-black text-amber-300 whitespace-nowrap">🍳 待出餐點統計</span>
+                            <span id="kitchen-batch-total-badge" class="px-2.5 py-0.5 rounded-full bg-amber-400 text-wine-950 font-black text-[11px] whitespace-nowrap">共 0 份待做</span>
+                        </div>
+                        <button type="button" onclick="toggleKitchenBatchCollapse()" id="btn-toggle-batch-collapse" class="text-[11px] font-bold text-cream-200/80 hover:text-gold-400 px-2.5 py-1 rounded-lg bg-wine-950/70 border border-gold-400/25 whitespace-nowrap shrink-0">
+                            收合 ▴
+                        </button>
+                    </div>
+                    <div id="kitchen-batch-items-list" class="grid grid-cols-2 sm:flex sm:flex-wrap gap-2">
+                        <span class="col-span-2 text-xs text-cream-200/60">目前沒有待製作的餐點喔！</span>
+                    </div>
+                </div>
+
+                <div class="px-4 py-2.5 rounded-2xl bg-wine-900/50 border border-gold-400/25 flex flex-wrap items-center justify-between gap-2 text-xs text-cream-200/85">
                     <div class="flex items-center gap-4">
                         <span>💰 已確認入帳：<strong id="stat-paid-revenue" class="text-emerald-400 text-sm">$0</strong></span>
                         <span>⏳ 待收款 / 待對帳：<strong id="stat-unpaid-revenue" class="text-amber-300 text-sm">$0</strong></span>
@@ -247,22 +231,62 @@
                     <span class="text-cream-200/60">點擊訂單上的「標記已收款」即可完成對帳</span>
                 </div>
 
-                <!-- 搜尋與狀態篩選 -->
-                <div class="flex flex-col md:flex-row md:items-center justify-between gap-3">
-                    <div class="relative w-full md:w-80">
-                        <input type="text" id="owner-order-search" oninput="refreshOwnerOrdersView()" placeholder="搜尋客人姓名、電話、編號、桌號..."
-                               class="w-full pl-9 pr-4 py-2 rounded-full bg-wine-950 border border-gold-400/40 text-xs text-cream-50 placeholder-cream-200/40 focus:outline-none focus:border-gold-400">
-                        <span class="absolute left-3.5 top-2 text-gold-400 text-xs">🔍</span>
+                <div class="space-y-3">
+                    <div class="flex flex-col sm:flex-row sm:items-center gap-2.5">
+                        <div class="relative flex-1">
+                            <input type="text" id="owner-order-search" oninput="refreshOwnerOrdersView()" placeholder="搜尋客人姓名、電話、編號、桌號..."
+                                   class="w-full pl-9 pr-4 py-2.5 rounded-full bg-wine-950 border border-gold-400/40 text-xs text-cream-50 placeholder-cream-200/40 focus:outline-none focus:border-gold-400">
+                            <span class="absolute left-3.5 top-2.5 text-gold-400 text-xs">🔍</span>
+                        </div>
+                        <div class="grid grid-cols-2 sm:flex items-center gap-2 shrink-0">
+                            <button type="button" onclick="toggleOrderDateDrawer()" id="btn-toggle-date-drawer" class="px-3 py-2 rounded-full text-xs font-bold bg-wine-900 text-cream-100 border border-gold-400/35 hover:bg-wine-800 whitespace-nowrap transition text-center">📅 日期篩選 ▾</button>
+                            <button type="button" onclick="toggleDeliverySimDrawer()" id="btn-toggle-sim-drawer" class="px-3 py-2 rounded-full text-xs font-bold bg-wine-900 text-cream-100 border border-gold-400/35 hover:bg-wine-800 whitespace-nowrap transition text-center">🚀 外送演示 ▾</button>
+                            <button type="button" onclick="toggleKitchenLargeMode()" id="btn-kitchen-large-mode" class="px-3 py-2 rounded-full text-xs font-bold bg-wine-900 text-amber-300 border border-amber-400/50 hover:bg-wine-800 whitespace-nowrap transition text-center">🔍 大字：關</button>
+                            <button type="button" onclick="cycleOwnerOrientationLayout()" id="btn-owner-orientation" class="px-3 py-2 rounded-full text-xs font-bold bg-wine-900 text-sky-300 border border-sky-400/50 hover:bg-wine-800 whitespace-nowrap transition text-center">📐 版面：自動</button>
+                        </div>
                     </div>
-                    <div class="flex items-center gap-2 overflow-x-auto pb-1">
-                        <button onclick="setOwnerFilter('active')" id="filter-active" class="px-3.5 py-1.5 rounded-full text-xs font-bold bg-gold-500 text-wine-950 transition">進行中訂單</button>
-                        <button onclick="setOwnerFilter('completed')" id="filter-completed" class="px-3.5 py-1.5 rounded-full text-xs font-medium bg-wine-900 text-cream-200 border border-gold-400/30 transition">已完成歷史</button>
-                        <button onclick="setOwnerFilter('cancelled')" id="filter-cancelled" class="px-3.5 py-1.5 rounded-full text-xs font-medium bg-wine-900 text-cream-200 border border-gold-400/30 transition">已取消訂單</button>
-                        <button onclick="setOwnerFilter('all')" id="filter-all" class="px-3.5 py-1.5 rounded-full text-xs font-medium bg-wine-900 text-cream-200 border border-gold-400/30 transition">全部訂單</button>
+
+                    <div id="owner-date-filter-drawer" class="hidden p-3.5 rounded-2xl bg-wine-900/75 border border-gold-400/35 space-y-2.5 text-xs">
+                        <div class="flex items-center justify-between">
+                            <span class="text-gold-400 font-bold">📅 訂單日期與時段篩選</span>
+                            <div class="flex items-center gap-1.5">
+                                <button type="button" onclick="setOrderDatePreset('today')" class="px-2.5 py-1 rounded-lg bg-wine-800 hover:bg-wine-700 text-cream-100 border border-gold-400/30">今日</button>
+                                <button type="button" onclick="setOrderDatePreset('week')" class="px-2.5 py-1 rounded-lg bg-wine-800 hover:bg-wine-700 text-cream-100 border border-gold-400/30">近7日</button>
+                                <button type="button" onclick="setOrderDatePreset('all')" class="px-2.5 py-1 rounded-lg bg-gold-500 text-wine-950 font-bold">全部</button>
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-2 sm:flex sm:flex-wrap items-center gap-2">
+                            <input type="date" id="orders-date-start" onchange="refreshOwnerOrdersView()" class="w-full sm:w-auto px-2.5 py-1.5 rounded-lg bg-wine-950 border border-gold-400/40 text-cream-50">
+                            <input type="date" id="orders-date-end" onchange="refreshOwnerOrdersView()" class="w-full sm:w-auto px-2.5 py-1.5 rounded-lg bg-wine-950 border border-gold-400/40 text-cream-50">
+                            <input type="time" id="orders-time-start" value="00:00" onchange="refreshOwnerOrdersView()" class="w-full sm:w-auto px-2 py-1.5 rounded-lg bg-wine-950 border border-gold-400/40 text-cream-50">
+                            <input type="time" id="orders-time-end" value="23:59" onchange="refreshOwnerOrdersView()" class="w-full sm:w-auto px-2 py-1.5 rounded-lg bg-wine-950 border border-gold-400/40 text-cream-50">
+                        </div>
+                    </div>
+
+                    <div id="owner-delivery-sim-drawer" class="hidden p-3.5 rounded-2xl bg-wine-900/75 border border-gold-400/35 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 text-xs">
+                        <div class="text-cream-200/85">
+                            <span class="text-gold-400 font-bold">🚀 全通路整合演示：</span>
+                            <span>產生測試用外送平台訂單，用來確認看板與報表呈現</span>
+                        </div>
+                        <div class="grid grid-cols-2 sm:flex items-center gap-2 shrink-0">
+                            <button type="button" onclick="simulateDeliveryOrder('ubereats')" class="px-3 py-2 rounded-xl bg-emerald-700 hover:bg-emerald-600 text-white font-bold shadow-sm transition text-center whitespace-nowrap">
+                                🛵 模擬 UberEats
+                            </button>
+                            <button type="button" onclick="simulateDeliveryOrder('foodpanda')" class="px-3 py-2 rounded-xl bg-pink-600 hover:bg-pink-500 text-white font-bold shadow-sm transition text-center whitespace-nowrap">
+                                🐼 模擬 Foodpanda
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-4 gap-1.5 sm:flex sm:items-center sm:gap-2">
+                        <button onclick="setOwnerFilter('active')" id="filter-active" class="py-2 px-2 sm:px-4 rounded-full text-xs font-bold bg-gold-500 text-wine-950 whitespace-nowrap text-center transition">進行中</button>
+                        <button onclick="setOwnerFilter('completed')" id="filter-completed" class="py-2 px-2 sm:px-4 rounded-full text-xs font-medium bg-wine-900 text-cream-200 border border-gold-400/30 whitespace-nowrap text-center transition">已完成</button>
+                        <button onclick="setOwnerFilter('cancelled')" id="filter-cancelled" class="py-2 px-2 sm:px-4 rounded-full text-xs font-medium bg-wine-900 text-cream-200 border border-gold-400/30 whitespace-nowrap text-center transition">已取消</button>
+                        <button onclick="setOwnerFilter('all')" id="filter-all" class="py-2 px-2 sm:px-4 rounded-full text-xs font-medium bg-wine-900 text-cream-200 border border-gold-400/30 whitespace-nowrap text-center transition">全部訂單</button>
                     </div>
                 </div>
 
-                <div id="owner-orders-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+                <div id="owner-orders-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-6"></div>
             </div>
 
             <!-- ================= 分頁 2：菜單、商品圖片與售完管理 ================= -->
@@ -295,7 +319,6 @@
                         </button>
                     </div>
 
-                    <!-- 報表日期與時段篩選 -->
                     <div class="pt-3 border-t border-gold-400/20 flex flex-wrap items-center justify-between gap-3 text-xs">
                         <div class="flex flex-wrap items-center gap-2">
                             <span class="text-gold-400 font-bold">📅 報表統計區間：</span>
@@ -313,7 +336,6 @@
                         </div>
                     </div>
 
-                    <!-- 六大報表切換標籤 -->
                     <div class="flex items-center gap-2 overflow-x-auto pt-2">
                         <button onclick="switchReportType('itemSales')" id="rep-tab-itemSales" class="px-3.5 py-2 rounded-xl text-xs font-bold bg-cream-100 text-wine-950 whitespace-nowrap">商品銷售統計表</button>
                         <button onclick="switchReportType('hourlySales')" id="rep-tab-hourlySales" class="px-3.5 py-2 rounded-xl text-xs font-medium bg-wine-950 text-cream-200 border border-gold-400/30 whitespace-nowrap">時段銷售明細</button>
@@ -327,15 +349,15 @@
                 <div id="owner-report-content" class="rounded-3xl bg-[#fffcf7] text-wine-950 p-5 sm:p-6 border border-gold-400/50 shadow-xl overflow-x-auto"></div>
             </div>
 
-            <!-- ================= 分頁 4：店舖資料、公休日與 UberEats API 設定 ================= -->
+            <!-- ================= 分頁 4：店舖資料、公休日、密碼安全與 API 設定 ================= -->
             <div id="owner-store-settings-panel" class="hidden space-y-6">
-                <!-- 設定子分頁導覽列 -->
                 <div class="p-2 rounded-2xl bg-wine-900/80 border border-gold-400/30 flex items-center gap-2 overflow-x-auto no-scrollbar">
-                    <button type="button" onclick="switchSettingsSubTab('basic')" id="cfg-subtab-basic" class="px-4 py-2 rounded-xl text-xs sm:text-sm font-bold bg-cream-100 text-wine-950 shadow-sm whitespace-nowrap transition">🏪 店舖基本與公休</button>
+                    <button type="button" onclick="switchSettingsSubTab('basic')" id="cfg-subtab-basic" class="px-4 py-2 rounded-xl text-xs sm:text-sm font-bold bg-cream-100 text-wine-950 shadow-sm whitespace-nowrap transition">🏪 店舖基本與出單</button>
                     <button type="button" onclick="switchSettingsSubTab('payment')" id="cfg-subtab-payment" class="px-4 py-2 rounded-xl text-xs sm:text-sm font-medium text-cream-200 hover:bg-wine-800 whitespace-nowrap transition">💳 行動支付與金流</button>
                     <button type="button" onclick="switchSettingsSubTab('logistics')" id="cfg-subtab-logistics" class="px-4 py-2 rounded-xl text-xs sm:text-sm font-medium text-cream-200 hover:bg-wine-800 whitespace-nowrap transition">🚚 即時物流派車</button>
                     <button type="button" onclick="switchSettingsSubTab('delivery')" id="cfg-subtab-delivery" class="px-4 py-2 rounded-xl text-xs sm:text-sm font-medium text-cream-200 hover:bg-wine-800 whitespace-nowrap transition">🛵 外送平台與發票</button>
                 </div>
+
                 <form onsubmit="event.preventDefault(); commitAllOwnerChanges();" class="space-y-6">
                     <!-- 基本資料與公告卡片 -->
                     <div id="cfg-card-basic-info" data-cfgsub="basic" class="rounded-3xl bg-[#fffcf7] text-wine-950 p-6 border border-gold-400/50 shadow-lg space-y-4">
@@ -382,12 +404,12 @@
                         </div>
                     </div>
 
-                    <!-- 店家後台登入密碼管理卡片 -->
+                    <!-- 店家後台登入密碼管理與超級管理員救援卡片 -->
                     <div id="cfg-card-passcode" data-cfgsub="basic" class="rounded-3xl bg-[#fffcf7] text-wine-950 p-6 border border-gold-400/50 shadow-lg space-y-4">
                         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-wine-800/15">
                             <div>
-                                <h3 class="font-serif text-lg font-bold text-wine-900">🔐 店家後台登入密碼</h3>
-                                <p class="text-xs text-stone-500 mt-0.5">修改後立即同步雲端，手機、平板、電腦都用新密碼登入</p>
+                                <h3 class="font-serif text-lg font-bold text-wine-900">🔐 店家後台登入密碼管理</h3>
+                                <p class="text-xs text-stone-500 mt-0.5">修改後會自動同步至雲端資料庫，手機、平板、電腦新密碼立即生效（僅儲存雜湊，不存明碼）</p>
                             </div>
                             <span id="passcode-role-badge" class="px-3 py-1 rounded-full bg-amber-100 text-amber-900 text-xs font-bold self-start">👤 店家管理員模式</span>
                         </div>
@@ -395,7 +417,7 @@
                         <div id="super-admin-passcode-banner" class="hidden p-3.5 rounded-2xl bg-indigo-50 border border-indigo-300 text-xs text-indigo-950 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                             <div>
                                 <strong class="block text-indigo-900">🛡️ 您目前以「超級管理員」身份登入</strong>
-                                <span class="text-indigo-800">下方可直接設定新密碼（免輸入原密碼），或一鍵還原為系統預設值</span>
+                                <span class="text-indigo-800">下方可直接輸入新密碼免原密碼覆蓋，或一鍵還原為系統預設密碼</span>
                             </div>
                             <button type="button" onclick="superAdminResetDefaultPasscode()" class="px-3.5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold whitespace-nowrap transition shrink-0">
                                 ↺ 重設為預設密碼
@@ -408,7 +430,7 @@
                                 <input type="password" id="cfg-old-passcode" placeholder="請輸入目前密碼" class="w-full px-3.5 py-2 rounded-xl bg-cream-100 border border-cream-300 font-mono">
                             </div>
                             <div>
-                                <label class="block font-bold text-wine-900 mb-1">設定新密碼（至少 4 碼）*</label>
+                                <label class="block font-bold text-wine-900 mb-1">設定新密碼（至少4碼）*</label>
                                 <input type="password" id="cfg-new-passcode" placeholder="輸入新密碼" class="w-full px-3.5 py-2 rounded-xl bg-cream-100 border border-cream-300 font-mono">
                             </div>
                             <div>
@@ -425,13 +447,86 @@
                         </div>
                     </div>
 
-                    <!-- UberEats API 與電子發票設定卡片 -->
+                    <!-- 🖨️ 櫃檯自助點餐與熱感應出單機列印設定卡片 -->
+                    <div id="cfg-card-receipt-printer" data-cfgsub="basic" class="rounded-3xl bg-[#fffcf7] text-wine-950 p-6 border border-gold-400/50 shadow-lg space-y-5">
+                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-wine-800/15">
+                            <div>
+                                <h3 class="font-serif text-lg font-bold text-wine-900">🖨️ 櫃檯平板出單機與自動收據列印設定</h3>
+                                <p class="text-xs text-stone-500 mt-0.5">同時支援「單台 Android 平板自助出單」與「iPad 點餐 ＋ 舊安卓手機雲端自動出單中繼站」</p>
+                            </div>
+                            <button type="button" onclick="testReceiptPrintSample()" class="px-3.5 py-2 rounded-xl bg-wine-800 hover:bg-wine-900 text-cream-50 text-xs font-bold shadow-xs transition self-start whitespace-nowrap">
+                                🧪 測試列印一張收據
+                            </button>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-3.5 text-xs">
+                            <div class="p-4 rounded-2xl bg-emerald-50/80 border border-emerald-300 flex items-start justify-between gap-3">
+                                <div class="space-y-1">
+                                    <div class="flex items-center gap-1.5">
+                                        <span class="px-2 py-0.5 rounded bg-emerald-700 text-white text-[10px] font-bold">方案 A｜單機版</span>
+                                        <span class="font-bold text-wine-950">本機點餐送出時自動印單</span>
+                                    </div>
+                                    <p class="text-[11px] text-stone-600 leading-relaxed">
+                                        適合櫃檯放<strong>一台 Android 平板</strong>（兼做點餐與連出單機），客人按下送出訂單的當下直接吐紙。
+                                    </p>
+                                </div>
+                                <input type="checkbox" id="cfg-auto-print-receipt" onchange="markOwnerHasUnsavedChanges()" class="w-5 h-5 accent-emerald-700 cursor-pointer shrink-0 mt-1">
+                            </div>
+
+                            <div class="p-4 rounded-2xl bg-amber-50/90 border border-amber-300 flex items-start justify-between gap-3">
+                                <div class="space-y-1">
+                                    <div class="flex items-center gap-1.5">
+                                        <span class="px-2 py-0.5 rounded bg-amber-600 text-white text-[10px] font-bold">方案 B｜雙機中繼</span>
+                                        <span class="font-bold text-wine-950">此裝置作為「雲端自動出單機」</span>
+                                    </div>
+                                    <p class="text-[11px] text-stone-600 leading-relaxed">
+                                        適合<strong>櫃檯放 iPad 點餐 ＋ 底下舊安卓手機連出單機</strong>（僅儲存於本機）。開啟後，只要雲端進任何新單（含 iPad 與客人手機掃碼單），這台舊手機 0.5 秒自動吐收據！
+                                    </p>
+                                </div>
+                                <input type="checkbox" id="cfg-device-cloud-relay" onchange="toggleDeviceCloudRelay(this.checked)" class="w-5 h-5 accent-amber-600 cursor-pointer shrink-0 mt-1">
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+                            <div class="p-3.5 rounded-2xl bg-cream-100/80 border border-cream-300 space-y-1">
+                                <label class="block font-bold text-wine-950">出單機連線方式</label>
+                                <select id="cfg-printer-mode" onchange="markOwnerHasUnsavedChanges()" class="w-full px-3 py-1.5 rounded-lg bg-white border border-cream-300 font-medium text-wine-950">
+                                    <option value="rawbt">Android 裝置 + RawBT App (全自動無聲吐紙，推薦)</option>
+                                    <option value="browser">標準網頁列印 (iPad AirPrint / 電腦 USB / Wi-Fi)</option>
+                                </select>
+                            </div>
+
+                            <div class="p-3.5 rounded-2xl bg-cream-100/80 border border-cream-300 space-y-1">
+                                <label class="block font-bold text-wine-950">熱感應紙寬度</label>
+                                <select id="cfg-printer-paper" onchange="markOwnerHasUnsavedChanges()" class="w-full px-3 py-1.5 rounded-lg bg-white border border-cream-300 font-medium text-wine-950">
+                                    <option value="80mm">80mm 標準商用出單機 (推薦)</option>
+                                    <option value="58mm">58mm 迷你隨身出單機</option>
+                                </select>
+                            </div>
+
+                            <div class="md:col-span-2 p-3.5 rounded-2xl bg-rose-50/80 border border-rose-200 space-y-1.5">
+                                <label class="block font-bold text-wine-950">🛡️ 未付款訂單出單時機（防跑單 / 防惡作劇假單設定）</label>
+                                <select id="cfg-print-timing" onchange="markOwnerHasUnsavedChanges()" class="w-full px-3 py-2 rounded-lg bg-white border border-rose-200 font-bold text-wine-950">
+                                    <option value="immediate">全部訂單送出即印（適合純內用、追求出餐速度，紙條印【⚠️ 未付款】提醒）</option>
+                                    <option value="dinein_immediate_takeout_confirm">內用送出即印 ｜ 外帶/外送需「接單或已收款」才印（最推薦！防惡作劇棄單）</option>
+                                    <option value="after_accept_or_paid">所有未付款單需店家按「接單製作」或「標記已收款」後才自動出紙</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="p-3.5 rounded-2xl bg-sky-50/90 border border-sky-200 text-[11px] text-sky-950 leading-relaxed space-y-1">
+                            <div><strong>📱 方案 B（iPad 點餐 ＋ 舊安卓手機自動印單）接線步驟：</strong></div>
+                            <div>1. <strong>舊安卓手機</strong>：安裝 <strong>RawBT App</strong> 並藍牙配對出單機 ➔ 開啟本網頁登入後台 ➔ 勾選上方<strong>「此裝置作為雲端自動出單機」</strong>並保持畫面開啟。</div>
+                            <div>2. <strong>櫃檯 iPad</strong>：免裝任何 App，直接用 Safari 開啟前台點餐頁放櫃檯。客人點完按送出 ➔ 雲端通知舊安卓手機 ➔ 出單機立刻無聲自動吐收據！</div>
+                        </div>
+                    </div>
+
+                    <!-- 外送平台 API 與電子發票設定卡片 -->
                     <div id="cfg-card-delivery" data-cfgsub="delivery" class="rounded-3xl bg-[#fffcf7] text-wine-950 p-6 border border-gold-400/50 shadow-lg space-y-5">
                         <div class="flex items-center justify-between pb-3 border-b border-wine-800/15">
                             <h3 class="font-serif text-lg font-bold text-wine-900">🛵 外送平台 API 串接（UberEats & Foodpanda）與發票設定</h3>
                         </div>
 
-                        <!-- UberEats 串接區塊 -->
                         <div class="p-4 rounded-2xl bg-cream-100/70 border border-cream-300 space-y-3">
                             <div class="flex items-center justify-between">
                                 <div class="flex items-center gap-2">
@@ -463,7 +558,6 @@
                             </div>
                         </div>
 
-                        <!-- Foodpanda 串接區塊 -->
                         <div class="p-4 rounded-2xl bg-rose-50/60 border border-rose-200 space-y-3">
                             <div class="flex items-center justify-between">
                                 <div class="flex items-center gap-2">
@@ -495,7 +589,6 @@
                             </div>
                         </div>
 
-                        <!-- 統一發票設定 -->
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs pt-1">
                             <div>
                                 <label class="block text-stone-600 mb-1">店家統一編號 (發票報表用)</label>
@@ -518,7 +611,6 @@
             </div>
         </div>
 
-        <!-- 底部未儲存變更懸浮確認條 -->
         <div id="owner-unsaved-bar" class="hidden fixed bottom-4 left-4 right-4 z-40 max-w-3xl mx-auto bg-wine-950/95 backdrop-blur-md text-cream-50 px-5 py-3.5 rounded-2xl border-2 border-gold-400 shadow-2xl flex flex-col sm:flex-row items-center justify-between gap-3">
             <div class="flex items-center gap-2 text-xs sm:text-sm font-bold text-amber-300">
                 <span>⚠️ 您有尚未儲存的後台修改，請確認是否套用！</span>
@@ -536,7 +628,6 @@
 
     <!-- 前台主內容包裹容器 -->
     <main id="customer-storefront">
-        <!-- Hero 主視覺區塊 -->
         <section class="relative overflow-hidden bg-gradient-to-br from-wine-950 via-wine-900 to-[#42080e] text-cream-50 border-b-4 border-gold-500/60">
             <svg class="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 1440 700" fill="none" preserveAspectRatio="xMidYMid slice">
                 <path d="M-80 120 C 320 340, 750 -80, 1520 180" stroke="url(#goldGrad1)" stroke-width="2" opacity="0.55"/>
@@ -683,19 +774,21 @@
                         <h2 id="menu-section-title" class="font-serif text-2xl sm:text-4xl font-black text-wine-900 tracking-wide">昕悅早午餐．職人全菜單</h2>
                         <p class="text-xs sm:text-sm text-wine-800/75 mt-1.5">點擊「+」或規格按鈕即可加入點餐單，支援內用桌號與外帶預訂</p>
                     </div>
-                    <div class="relative w-full md:w-80">
-                        <input type="text" id="menu-search" placeholder="搜尋餐點 (如：卡拉雞、厚切、鮮奶茶)..."
-                               class="w-full pl-11 pr-4 py-3 rounded-full bg-cream-100 border border-gold-500/40 text-sm text-wine-950 placeholder-wine-800/50 focus:outline-none focus:border-wine-800 focus:bg-white transition">
-                        <svg class="w-4 h-4 text-wine-800 absolute left-4 top-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
-                        </svg>
+                    <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 w-full md:w-auto">
+                        <div class="relative w-full md:w-72">
+                            <input type="text" id="menu-search" placeholder="搜尋餐點 (如：卡拉雞、厚切、鮮奶茶)..."
+                                   class="w-full pl-11 pr-4 py-3 rounded-full bg-cream-100 border border-gold-500/40 text-sm text-wine-950 placeholder-wine-800/50 focus:outline-none focus:border-wine-800 focus:bg-white transition">
+                            <svg class="w-4 h-4 text-wine-800 absolute left-4 top-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                            </svg>
+                        </div>
+                        <button type="button" onclick="cycleMenuOrientationLayout()" id="btn-menu-orientation" class="px-4 py-2.5 rounded-full bg-wine-900 hover:bg-wine-800 text-gold-400 border border-gold-400/50 text-xs font-bold whitespace-nowrap transition shadow-xs flex items-center justify-center gap-1.5">
+                            <span>📐 菜單版面：自動</span>
+                        </button>
                     </div>
                 </div>
 
-                <!-- 分類導覽標籤 (電腦版自動換行完整呈現) -->
                 <div id="category-tabs" class="flex md:flex-wrap items-center gap-2.5 overflow-x-auto md:overflow-visible no-scrollbar pb-4 mb-6"></div>
-
-                <!-- 菜單內容網格 -->
                 <div id="menu-container" class="space-y-10"></div>
             </div>
         </section>
@@ -752,7 +845,7 @@
                 </div>
 
                 <div class="pt-8 flex flex-col sm:flex-row items-center justify-between text-xs text-cream-200/50 gap-4">
-                    <p>© 2026 <span id="copyright-store-name">昕悅早午餐 Xin Yue Brunch</span>. All Rights Reserved. <span class="ml-1.5 px-2 py-0.5 rounded bg-wine-900 text-gold-400/80 font-mono text-[10px]">v2.8.0</span></p>
+                    <p>© 2026 <span id="copyright-store-name">昕悅早午餐 Xin Yue Brunch</span>. All Rights Reserved. <span class="ml-1.5 px-2 py-0.5 rounded bg-wine-900 text-gold-400/80 font-mono text-[10px]">v3.0.0</span></p>
                     <div class="flex items-center gap-4">
                         <span class="tracking-widest text-gold-400/70">FRESH / BRUNCH / GOOD MOOD ♡</span>
                         <button onclick="openOwnerLoginModal()" class="px-3 py-1 rounded-full bg-wine-900/80 hover:bg-wine-800 text-cream-200/70 hover:text-gold-400 border border-wine-700/60 transition flex items-center gap-1">
@@ -772,7 +865,7 @@
             <div class="text-center mb-6">
                 <div class="w-12 h-12 rounded-full bg-wine-900 text-gold-400 flex items-center justify-center mx-auto mb-3 border-2 border-gold-400 text-xl">🔒</div>
                 <h3 class="font-serif text-2xl font-bold text-wine-900">店家接單後台驗證</h3>
-                <p class="text-xs text-stone-500 mt-1">請輸入店家管理密碼（或超級管理員救援密碼）</p>
+                <p class="text-xs text-stone-500 mt-1">請輸入管理者密碼或超級管理員密碼</p>
             </div>
             <form onsubmit="verifyOwnerPassword(event)" class="space-y-4">
                 <div>
@@ -844,7 +937,7 @@
                             <div id="dining-type-grid" class="grid grid-cols-2 gap-1 bg-white p-1 rounded-lg border border-cream-300 text-xs">
                                 <button type="button" onclick="setDiningType('內用')" id="btn-dine-in" class="py-1.5 rounded-md font-medium bg-wine-800 text-cream-50 transition">內用</button>
                                 <button type="button" onclick="setDiningType('外帶')" id="btn-take-out" class="py-1.5 rounded-md font-medium text-stone-600 hover:bg-cream-100 transition">外帶</button>
-                                <button type="button" onclick="setDiningType('外送')" id="btn-delivery" class="hidden py-1.5 rounded-md font-medium text-stone-600 hover:bg-cream-100 transition">🛵 外送</button>
+                                <button type="button" onclick="setDiningType('外送')" id="btn-delivery" class="hidden py-1.5 rounded-md font-medium text-stone-600 hover:bg-cream-100 transition">外送</button>
                             </div>
                         </div>
                         <div id="table-number-box">
@@ -853,7 +946,6 @@
                         </div>
                     </div>
 
-                    <!-- 專人外送地址與物流運費試算框 -->
                     <div id="delivery-address-box" class="hidden p-3 rounded-xl bg-amber-50/90 border border-amber-300 space-y-2 text-xs">
                         <div class="flex items-center justify-between">
                             <span class="font-bold text-wine-900">🛵 專人外送（餐點原價＋物流配送費）</span>
@@ -867,6 +959,7 @@
                             • 最低外送門檻 $200｜滿 $400 享運費折抵 $30（物流司機不代收現金，請選線上付款）
                         </p>
                     </div>
+
                     <div class="grid grid-cols-2 gap-3">
                         <div>
                             <label for="customer-name" class="block text-xs text-stone-500 mb-1">取餐人稱呼 *</label>
@@ -907,7 +1000,6 @@
                             </button>
                         </div>
 
-                        <!-- 第三方行動支付提示框 -->
                         <div id="thirdparty-pay-box" class="hidden p-3 rounded-xl bg-emerald-50/90 border border-emerald-300 space-y-1.5 text-xs">
                             <div class="flex items-center justify-between">
                                 <span id="thirdparty-pay-title" class="font-bold text-emerald-900">💚 LINE Pay 線上付款</span>
@@ -1114,6 +1206,15 @@
         <span id="toast-text">已加入點餐清單</span>
     </div>
 
+    <!-- 全站懸浮一鍵回到頂部按鈕 -->
+    <button type="button" id="scroll-to-top-btn" onclick="scrollToPageTop()" aria-label="回到頂部"
+            class="fixed bottom-24 right-4 sm:bottom-8 sm:right-8 z-30 w-11 h-11 sm:w-12 sm:h-12 rounded-full bg-wine-900/95 hover:bg-wine-800 text-gold-400 border-2 border-gold-400/80 shadow-2xl backdrop-blur-md flex flex-col items-center justify-center opacity-0 pointer-events-none translate-y-3 transition-all duration-300 active:scale-90">
+        <svg class="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 15l7-7 7 7"></path>
+        </svg>
+        <span class="text-[9px] font-bold leading-none mt-0.5">TOP</span>
+    </button>
+
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
@@ -1130,14 +1231,15 @@
 
         const STORE_ID = "xinyue-brunch";
 
-        // 【網域白名單】防止原始碼被複製到未授權網域盜用（本機開發與 GitHub Pages 皆在名單內）
-        const ALLOWED_DOMAINS = ["localhost", "127.0.0.1", "github.io"];
+        // 【網域白名單】防止原始碼被複製到未授權網域盜用
+        const ALLOWED_DOMAINS = ["localhost", "127.0.0.1", "github.io", "usercontent.goog"];
         const currentHost = window.location.hostname;
         const isAuthorizedHost = !currentHost || ALLOWED_DOMAINS.some(d => currentHost === d || currentHost.endsWith("." + d));
         if (!isAuthorizedHost) {
             document.body.innerHTML = '<div style="padding:40px;text-align:center;font-family:sans-serif;"><h2>⚠️ 未授權的網域存取</h2><p>此系統僅限於官方授權網域運行，請聯繫創峰行銷取得正式網址。</p></div>';
-            throw new Error("Unauthorized domain: " + currentHost);
+            throw new Error("Unauthorized host: " + currentHost);
         }
+
         const rawConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : MY_FIREBASE_CONFIG;
         const isFirebaseConfigured = rawConfig && rawConfig.apiKey && !rawConfig.apiKey.includes("請貼上");
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'xinyue-brunch-prod';
@@ -1150,7 +1252,9 @@
         window.myLocalOrders = [];
         window.selectedCustomerOrderId = null;
         window.systemLicense = { isActive: true, expireDate: '2027-12-31', autoLockOnExpire: true };
+        window.globalDispatchWorkerUrl = '';
         let isInitialLoad = true;
+        const printedOrderIdsSet = new Set();
 
         const SAVED_IDS_KEY = 'xinyue_my_order_ids';
         const SAVED_MOCK_ORDERS_KEY = 'xinyue_my_mock_orders';
@@ -1206,25 +1310,33 @@
             });
         }
 
+        function sha256Hex(text) {
+            return crypto.subtle.digest('SHA-256', new TextEncoder().encode(String(text))).then(buf =>
+                [...new Uint8Array(buf)].map(b => b.toString(16).padStart(2, '0')).join('')
+            );
+        }
+        window.sha256Hex = sha256Hex;
+
         function subscribeToHqGlobalSecurity() {
             if (!currentUser || !db) return;
             const secRef = doc(db, 'artifacts', appId, 'public', 'data', 'hq_config', 'security');
-            onSnapshot(doc(db, 'artifacts', appId, 'public', 'data', 'hq_config', 'config'), (snap) => {
-                window.globalDispatchWorkerUrl = snap.exists() ? (snap.data().dispatchWorkerUrl || '') : '';
-            }, () => {});
             onSnapshot(secRef, (docSnap) => {
                 if (docSnap.exists()) {
                     const d = docSnap.data();
                     if (d.superAdminPasscodeHash) {
                         window.currentSuperAdminPasscodeHash = String(d.superAdminPasscodeHash);
                     } else if (d.superAdminPasscode) {
-                        // 舊版明碼相容：轉成雜湊後寫回，之後不再存明碼
+                        // 舊版明碼相容：轉雜湊後寫回，不再保存明碼
                         sha256Hex(String(d.superAdminPasscode)).then(h => {
                             window.currentSuperAdminPasscodeHash = h;
                             setDoc(secRef, { superAdminPasscodeHash: h, updatedAt: Date.now() }, { merge: true }).catch(() => {});
                         });
                     }
                 }
+            }, () => {});
+
+            onSnapshot(doc(db, 'artifacts', appId, 'public', 'data', 'hq_config', 'config'), (snap) => {
+                window.globalDispatchWorkerUrl = snap.exists() ? (snap.data().dispatchWorkerUrl || '') : '';
             }, () => {});
         }
 
@@ -1309,10 +1421,27 @@
                 snapshot.forEach((docSnap) => orders.push(Object.assign({ id: docSnap.id }, docSnap.data())));
                 orders.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
 
-                if (!isInitialLoad && window.isOwnerLoggedIn) {
+                if (!isInitialLoad) {
                     const prevIds = new Set(allCloudOrders.map(o => o.id));
-                    if (orders.some(o => !prevIds.has(o.id) && o.status === 'pending') && window.playNotificationBell) {
-                        window.playNotificationBell();
+                    const brandNewPendingOrders = orders.filter(o => !prevIds.has(o.id) && o.status === 'pending');
+
+                    if (brandNewPendingOrders.length > 0) {
+                        if (window.isOwnerLoggedIn && window.playNotificationBell) {
+                            window.playNotificationBell();
+                        }
+                        // 方案 B（雙機中繼站）：勾選後，雲端新單 0.5 秒自動無聲吐單
+                        const isCloudRelayDevice = localStorage.getItem('xinyue_device_cloud_relay') === '1';
+                        if (isCloudRelayDevice && window.printOrderReceipt && window.shouldAutoPrintOrder) {
+                            brandNewPendingOrders.forEach(newOrd => {
+                                if (!printedOrderIdsSet.has(newOrd.id) && window.shouldAutoPrintOrder(newOrd, 'submit')) {
+                                    printedOrderIdsSet.add(newOrd.id);
+                                    window.printOrderReceipt(newOrd, true);
+                                    if (window.showToast) {
+                                        window.showToast(`🖨️ 雲端中繼站已自動列印廚房單 #${newOrd.orderNumber}`);
+                                    }
+                                }
+                            });
+                        }
                     }
                 }
                 isInitialLoad = false;
@@ -1377,7 +1506,6 @@
                 ? window.paymentMethod : 'counter';
             const transferLast5 = document.getElementById('transfer-last5').value.trim();
             const isThirdPartyPay = ['linepay', 'jkopay', 'pxpay', 'ipass', 'twqr', 'easywallet', 'opay', 'ecpay', 'newebpay'].includes(paymentMethod);
-
             const deliveryAddress = document.getElementById('delivery-address')?.value.trim() || '';
 
             if ((window.diningType === '外帶' || window.diningType === '外送') && customerPhone.length < 8) {
@@ -1448,22 +1576,33 @@
                 window.toggleCart();
                 window.refreshCustomerOrdersUI();
                 window.openCustomerOrderModal();
+                // 方案 A（單機版）：本機點餐送出時自動觸發出單
+                if (window.storeProfileState?.autoPrintReceipt && window.printOrderReceipt && window.shouldAutoPrintOrder && window.shouldAutoPrintOrder(mockOrder, 'submit')) {
+                    printedOrderIdsSet.add(mockOrder.id);
+                    window.printOrderReceipt(mockOrder, true);
+                }
                 window.showToast(isThirdPartyPay ? '訂單已建立，請依店家指示完成付款' : '訂單已建立！隨時可點右上角「我的訂單」查看');
                 return;
             }
 
             const btn = document.getElementById('submit-order-btn');
             btn.disabled = true;
-            btn.innerHTML = isThirdPartyPay ? '<span>訂單傳送中...</span>' : '<span>訂單傳送中...</span>';
+            btn.innerHTML = '<span>訂單傳送中...</span>';
             try {
                 const docRef = await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'orders'), orderPayload);
                 saveOrderIdToDevice(docRef.id);
-                window.myLocalOrders.unshift(Object.assign({ id: docRef.id }, orderPayload));
+                const createdOrder = Object.assign({ id: docRef.id }, orderPayload);
+                window.myLocalOrders.unshift(createdOrder);
                 window.selectedCustomerOrderId = docRef.id;
                 window.clearCart();
                 window.toggleCart();
                 window.refreshCustomerOrdersUI();
                 window.openCustomerOrderModal();
+                // 方案 A（單機版）：本機點餐送出時自動觸發出單（記錄已印避免雲端監聽重複）
+                if (window.storeProfileState?.autoPrintReceipt && window.printOrderReceipt && window.shouldAutoPrintOrder && window.shouldAutoPrintOrder(createdOrder, 'submit')) {
+                    printedOrderIdsSet.add(docRef.id);
+                    window.printOrderReceipt(createdOrder, true);
+                }
                 window.showToast(isThirdPartyPay ? '訂單已送出！請完成付款，店家確認入帳後即安排製作' : '訂單已成功送出！店家已收到通知');
             } catch (error) {
                 console.error("送出訂單失敗:", error);
@@ -1475,23 +1614,34 @@
         };
 
         window.updateOrderStatus = async function(orderId, newStatus, cancelReason = '') {
+            const targetOrder = allCloudOrders.find(o => o.id === orderId);
             if (!isFirebaseConfigured || !db || !currentUser) {
-                const target = allCloudOrders.find(o => o.id === orderId);
-                if (target) { target.status = newStatus; if (newStatus === 'cancelled') target.cancelReason = cancelReason; }
+                if (targetOrder) { targetOrder.status = newStatus; if (newStatus === 'cancelled') targetOrder.cancelReason = cancelReason; }
                 if (window.renderOwnerOrders) window.renderOwnerOrders(allCloudOrders);
-                return;
+            } else {
+                const updateData = { status: newStatus };
+                if (newStatus === 'cancelled') updateData.cancelReason = cancelReason;
+                await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'orders', orderId), updateData);
             }
-            const updateData = { status: newStatus };
-            if (newStatus === 'cancelled') updateData.cancelReason = cancelReason;
-            await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'orders', orderId), updateData);
+            // 若設定為「接單後才出紙」，按下「接單開始製作」時自動觸發廚房單列印
+            if (newStatus === 'preparing' && targetOrder && !printedOrderIdsSet.has(orderId) && window.shouldAutoPrintOrder && window.shouldAutoPrintOrder(targetOrder, 'accept')) {
+                printedOrderIdsSet.add(orderId);
+                if (window.printOrderReceipt) window.printOrderReceipt(Object.assign({}, targetOrder, { status: 'preparing' }), false);
+            }
         };
 
         window.togglePaymentStatus = async function(orderId, currentPayStatus) {
             if (!db || !currentUser) return;
+            const nextPay = currentPayStatus === 'paid' ? 'unpaid' : 'paid';
             await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'orders', orderId), {
-                paymentStatus: currentPayStatus === 'paid' ? 'unpaid' : 'paid'
+                paymentStatus: nextPay
             });
             window.showToast(currentPayStatus === 'paid' ? '已改回待收款' : '💰 已確認收到款項！');
+            const targetOrder = allCloudOrders.find(o => o.id === orderId);
+            if (nextPay === 'paid' && targetOrder && !printedOrderIdsSet.has(orderId) && window.shouldAutoPrintOrder && window.shouldAutoPrintOrder(targetOrder, 'paid')) {
+                printedOrderIdsSet.add(orderId);
+                if (window.printOrderReceipt) window.printOrderReceipt(Object.assign({}, targetOrder, { paymentStatus: 'paid' }), false);
+            }
         };
 
         window.deleteOrderFromCloud = async function(orderId) {
@@ -1508,6 +1658,7 @@
         window.dispatchCourierForOrder = async function(orderId) {
             const p = window.storeProfileState || {};
             const lic = window.systemLicense || {};
+            // 優先：該店專屬網址 → 店家設定 → 總部全域設定
             const workerUrl = String((lic.dispatchWorkerUrl || p.dispatchWorkerUrl || window.globalDispatchWorkerUrl || '')).trim().replace(/\/+$/, '');
             const order = (allCloudOrders || []).find(o => o.id === orderId);
             if (!order) return;
@@ -1805,7 +1956,6 @@
             }
         ];
 
-        // 為所有初始商品注入預設圖片
         menuData.forEach(cat => {
             const defImg = DEFAULT_CATEGORY_IMAGES[cat.id] || DEFAULT_CATEGORY_IMAGES.burgers;
             cat.items.forEach(item => { if (!item.image) item.image = defImg; });
@@ -1877,7 +2027,11 @@
             newebpayHashKey: '',
             newebpayHashIv: '',
             taxId: '',
-            invoicePrefix: 'XY'
+            invoicePrefix: 'XY',
+            autoPrintReceipt: false,
+            printerMode: 'rawbt',
+            printerPaper: '80mm',
+            printTiming: 'dinein_immediate_takeout_confirm'
         };
 
         window.storeProfileState = JSON.parse(JSON.stringify(INITIAL_DEFAULT_STORE_PROFILE));
@@ -1887,18 +2041,25 @@
         window.paymentMethod = 'counter';
         window.isOwnerLoggedIn = false;
         let ownerFilter = 'active';
+        let isKitchenLargeMode = localStorage.getItem('xinyue_kitchen_large_mode') === '1';
+        let ownerOrientationLayout = localStorage.getItem('xinyue_owner_orientation') || 'auto'; // 'auto' | 'landscape' | 'portrait'
+        let menuOrientationLayout = localStorage.getItem('xinyue_menu_orientation') || 'auto'; // 'auto' | 'landscape' | 'portrait'
+        let isKitchenBatchCollapsed = false;
         let activeReportType = 'itemSales';
         let ownerHasUnsavedChanges = false;
         let savedOwnerSnapshot = null;
-        // 雙層密碼：店家密碼（預設 5262699）＋ 超級管理員救援密碼（預設 cf889977，由總部雲端管理）
-        // 兩者都只以 SHA-256 雜湊儲存，資料庫裡看不到明碼
+
+        // 雙層密碼：店家密碼（預設 5262699）＋ 超級救援密碼（預設 cf889977，由總部雲端管理）
+        // 兩者皆只以 SHA-256 雜湊比對，資料庫不存明碼
         const DEFAULT_OWNER_PASSCODE = '5262699';
         const DEFAULT_SUPER_ADMIN_PASSCODE = 'cf889977';
+        const SHA_OWNER_DEFAULT = 'b094a19f44cc6a4394b13b63e59d65aa5451cb242dda0515b1f0feb7306cbc90';
+        const SHA_SUPER_DEFAULT = '978de7f7b9d21ceb913b8aaa65ab6101f3ac898774d34a57bbda000f41bd9e0d';
         window.currentOwnerPasscodeHash = '';
         window.currentSuperAdminPasscodeHash = '';
         window.isSuperAdminSession = false;
 
-        async function sha256Hex(text) {
+        async function hashText(text) {
             const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(String(text)));
             return [...new Uint8Array(buf)].map(b => b.toString(16).padStart(2, '0')).join('');
         }
@@ -1911,12 +2072,14 @@
                     savedMenu.forEach(c => menuData.push(c));
                 }
                 const savedProf = JSON.parse(localStorage.getItem('xinyue_store_profile') || 'null');
-                if (savedProf) window.storeProfileState = Object.assign({}, INITIAL_DEFAULT_STORE_PROFILE, savedProf);
+                if (savedProf) {
+                    window.storeProfileState = Object.assign({}, INITIAL_DEFAULT_STORE_PROFILE, savedProf);
+                    if (savedProf.ownerPasscodeHash) window.currentOwnerPasscodeHash = String(savedProf.ownerPasscodeHash);
+                }
                 const savedStock = JSON.parse(localStorage.getItem('xinyue_sold_out_items') || '{}');
                 if (Object.keys(savedStock).length > 0) window.soldOutItems = savedStock;
             } catch (e) {}
 
-            // 注入公休日設定卡片
             const settingsPanel = document.getElementById('owner-store-settings-panel');
             const formEl = settingsPanel ? settingsPanel.querySelector('form') : null;
             if (formEl && !document.getElementById('closed-days-settings-card')) {
@@ -1965,7 +2128,6 @@
                 formEl.insertAdjacentHTML('afterbegin', cardHtml);
             }
 
-            // 注入第三方支付設定卡片（預設全部關閉，確定有真實金流帳號再開啟）
             if (formEl && !document.getElementById('thirdparty-payment-settings-card')) {
                 const payCardHtml = `
                     <div id="thirdparty-payment-settings-card" data-cfgsub="payment" class="rounded-3xl bg-[#fffcf7] text-wine-950 p-6 border border-gold-400/50 shadow-lg space-y-5">
@@ -1979,7 +2141,6 @@
                         <div class="p-3 rounded-2xl bg-amber-50 border border-amber-300 text-[11px] text-amber-900 leading-relaxed">
                             ⚠️ <strong>重要：目前尚未串接真實金流。</strong>這些欄位只是先把資料存起來，<strong>不會真的向客人收款</strong>。
                             客人選用後，訂單會標記為「待確認入帳」，請您自行核對 LINE Pay / 銀行 App 的入帳紀錄，再按訂單上的「✓ 標記已收款」。
-                            要做到自動扣款需要接上各家金流商的伺服器端 API（GitHub Pages 是靜態網站，做不到這一段）。
                         </div>
 
                         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5">
@@ -2118,7 +2279,6 @@
                 else formEl.insertAdjacentHTML('beforeend', payCardHtml);
             }
 
-            // 注入即時物流派車卡片（Lalamove / Uber Direct）
             if (formEl && !document.getElementById('logistics-dispatch-settings-card')) {
                 const logiCardHtml = `
                     <div id="logistics-dispatch-settings-card" data-cfgsub="logistics" class="rounded-3xl bg-[#fffcf7] text-wine-950 p-6 border border-gold-400/50 shadow-lg space-y-5">
@@ -2128,7 +2288,6 @@
                                 <p class="text-xs text-stone-500 mt-0.5">開啟後，客人結帳可選「外送」，訂單會多一個「一鍵派車」按鈕</p>
                             </div>
                         </div>
-
 
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div class="p-4 rounded-2xl bg-orange-50/70 border border-orange-200 space-y-3">
@@ -2198,6 +2357,8 @@
 
             window.applyDynamicStoreProfile(window.storeProfileState);
             populateStoreSettingsForm();
+            updateMenuOrientationUi();
+            updateOwnerOrientationUi();
             renderCategoryTabs();
             renderMenu();
             updateCartUI();
@@ -2311,7 +2472,6 @@
 
         const THIRD_PARTY_PAY_METHODS = ['linepay', 'jkopay', 'pxpay', 'ipass', 'twqr', 'easywallet', 'opay', 'ecpay', 'newebpay'];
 
-        // 線上支付屬於「加值方案」：只有總部控制中心開通、且未超過授權期限才會出現在前台
         function getPaymentLicenceState() {
             const lic = window.systemLicense || {};
             const list = Array.isArray(lic.enabledPayments) ? lic.enabledPayments : [];
@@ -2346,7 +2506,6 @@
             });
         }
 
-        // 依店舖設定動態產生前台付款方式按鈕（未啟用的金流不會顯示）
         function renderDynamicPaymentOptions() {
             const grid = document.getElementById('payment-methods-grid');
             if (!grid) return;
@@ -2381,6 +2540,16 @@
             }
             showToast(`ℹ️ ${gatewayName}（${merchantVal}）欄位已保存。實際串接需金流商伺服器端 API，目前僅儲存設定。`);
         }
+
+        function testLogisticsGateway(gatewayName, idInputId) {
+            const keyVal = document.getElementById(idInputId)?.value.trim();
+            if (!keyVal) {
+                showToast(`請先填入 ${gatewayName} 的 API Key 再測試連線喔！`);
+                return;
+            }
+            showToast(`🚚 ${gatewayName}（${keyVal}）物流金鑰格式已驗證並可儲存！`);
+        }
+
         window.isStoreClosedToday = function() {
             const p = window.storeProfileState || {};
             if (p.forceClosedToday) return true;
@@ -2495,7 +2664,11 @@
                 closedDaysText: document.getElementById('cfg-closed-days-text')?.value.trim() || '每週一公休',
                 closedSpecificDates: Array.isArray(window.tempClosedSpecificDates) ? window.tempClosedSpecificDates.slice() : [],
                 forceClosedToday: !!document.getElementById('cfg-force-closed-today')?.checked,
-                ownerPasscodeHash: window.currentOwnerPasscodeHash || window.storeProfileState.ownerPasscodeHash || ''
+                ownerPasscodeHash: window.currentOwnerPasscodeHash || window.storeProfileState.ownerPasscodeHash || '',
+                autoPrintReceipt: !!document.getElementById('cfg-auto-print-receipt')?.checked,
+                printerMode: document.getElementById('cfg-printer-mode')?.value || 'rawbt',
+                printerPaper: document.getElementById('cfg-printer-paper')?.value || '80mm',
+                printTiming: document.getElementById('cfg-print-timing')?.value || 'dinein_immediate_takeout_confirm'
             });
 
             window.applyDynamicStoreProfile(updatedProfile);
@@ -2578,7 +2751,224 @@
 
             const days = Array.isArray(p.closedWeekdays) ? p.closedWeekdays : [1];
             [0, 1, 2, 3, 4, 5, 6].forEach(d => setChk(`cfg-closed-day-${d}`, days.includes(d)));
+            setChk('cfg-auto-print-receipt', p.autoPrintReceipt);
+            setChk('cfg-device-cloud-relay', localStorage.getItem('xinyue_device_cloud_relay') === '1');
+            setVal('cfg-printer-mode', p.printerMode || 'rawbt');
+            setVal('cfg-printer-paper', p.printerPaper || '80mm');
+            setVal('cfg-print-timing', p.printTiming || 'dinein_immediate_takeout_confirm');
+            updatePasscodeRoleUi();
+            updateCloudRelayBadgeUi();
         }
+
+        function updateCloudRelayBadgeUi() {
+            const badge = document.getElementById('cloud-relay-active-badge');
+            if (!badge) return;
+            const isRelay = localStorage.getItem('xinyue_device_cloud_relay') === '1';
+            badge.classList.toggle('hidden', !isRelay);
+        }
+
+        window.toggleDeviceCloudRelay = function(enabled) {
+            try {
+                localStorage.setItem('xinyue_device_cloud_relay', enabled ? '1' : '0');
+            } catch (e) {}
+            updateCloudRelayBadgeUi();
+            showToast(enabled
+                ? '🖨️ 本機已成為「雲端自動出單中繼站」，請保持畫面開啟並確認 RawBT 已連線'
+                : '已關閉本機的雲端自動出單中繼功能');
+        };
+
+        // ================= 廚房工作單格式化與 RawBT / 瀏覽器列印引擎 =================
+        window.shouldAutoPrintOrder = function(order, triggerEvent) {
+            const p = window.storeProfileState || {};
+            const isRelay = localStorage.getItem('xinyue_device_cloud_relay') === '1';
+            if (!p.autoPrintReceipt && !isRelay) return false;
+
+            const timing = p.printTiming || 'dinein_immediate_takeout_confirm';
+            const isPaid = order.paymentStatus === 'paid';
+            const isDineIn = (order.diningType || '內用') === '內用';
+
+            if (triggerEvent === 'submit') {
+                if (timing === 'immediate') return true;
+                if (timing === 'dinein_immediate_takeout_confirm') return isDineIn || isPaid;
+                if (timing === 'after_accept_or_paid') return isPaid;
+            }
+            if (triggerEvent === 'accept' || triggerEvent === 'paid') {
+                return timing !== 'immediate';
+            }
+            return false;
+        };
+
+        function buildPlainReceiptText(order) {
+            const p = window.storeProfileState || {};
+            const is58 = (p.printerPaper || '80mm') === '58mm';
+            const line = is58 ? '--------------------------------' : '------------------------------------------';
+            const dLine = is58 ? '================================' : '==========================================';
+            const isPaid = order.paymentStatus === 'paid';
+            const payBanner = isPaid
+                ? '【 💰 已付款｜直接出餐 】'
+                : (order.paymentMethod === 'transfer'
+                    ? `【 ⚠️ 未確認入帳｜轉帳後五碼:${order.transferLast5 || ''} 】`
+                    : '【 ⚠️ 未付款｜送餐/取餐請收款 】');
+
+            const lines = [];
+            lines.push(dLine);
+            lines.push(`${p.storeName || '昕悅早午餐'} - 廚房出餐單`);
+            lines.push(payBanner);
+            lines.push(dLine);
+            lines.push(`單號：#${order.orderNumber || '---'}   【${order.diningType || '內用'}${order.tableNumber ? ' ' + order.tableNumber : ''}】`);
+            lines.push(`顧客：${order.customerName || '現場貴賓'}${order.customerPhone ? ' (' + order.customerPhone + ')' : ''}`);
+            if (order.deliveryAddress) lines.push(`外送地址：${order.deliveryAddress}`);
+            lines.push(`時間：${order.timeString || ''}｜${order.pickupTime || '盡快製作'}`);
+            lines.push(line);
+            (order.items || []).forEach(it => {
+                const qtyMark = it.qty > 1 ? `【 x${it.qty} 】` : `x${it.qty}`;
+                lines.push(`■ ${it.name}  ${qtyMark}   ($${it.price * it.qty})`);
+            });
+            if (order.deliveryFee) {
+                lines.push(`■ 專人外送費          +$${order.deliveryFee}`);
+            }
+            lines.push(line);
+            if (order.note) {
+                lines.push(`★★★ 備註：${order.note} ★★★`);
+                lines.push(line);
+            }
+            lines.push(`合計金額：NT$ ${order.totalPrice || 0}`);
+            lines.push(dLine);
+            lines.push('\n\n\n');
+            return lines.join('\n');
+        }
+
+        function triggerBrowserThermalPrint(order) {
+            const p = window.storeProfileState || {};
+            const paperWidth = (p.printerPaper || '80mm') === '58mm' ? '58mm' : '80mm';
+            const printWin = window.open('', '_blank', 'width=380,height=660');
+            if (!printWin) {
+                showToast('⚠️ 瀏覽器阻擋了列印視窗，請允許彈出視窗後再試一次');
+                return;
+            }
+            const isPaid = order.paymentStatus === 'paid';
+            const payBannerHtml = isPaid
+                ? `<div style="background:#000;color:#fff;text-align:center;font-size:16px;font-weight:900;padding:5px;margin:6px 0;">💰 已付款｜直接出餐</div>`
+                : `<div style="border:2px solid #000;text-align:center;font-size:16px;font-weight:900;padding:5px;margin:6px 0;">⚠️ 未付款｜請收現金 $${order.totalPrice || 0}</div>`;
+
+            const itemsHtml = (order.items || []).map(it => `
+                <div style="display:flex;justify-content:space-between;align-items:center;margin:7px 0;font-size:18px;font-weight:900;border-bottom:1px dotted #999;padding-bottom:4px;">
+                    <span>${it.name}</span>
+                    <span style="${it.qty > 1 ? 'background:#000;color:#fff;padding:1px 6px;' : ''}">x${it.qty}</span>
+                </div>
+            `).join('');
+
+            printWin.document.write(`
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <meta charset="UTF-8">
+                    <title>廚房出餐單 #${order.orderNumber}</title>
+                    <style>
+                        @page { margin: 0; size: ${paperWidth} auto; }
+                        body {
+                            width: ${paperWidth};
+                            margin: 0 auto;
+                            padding: 10px 8px 26px 8px;
+                            font-family: "Noto Sans TC", monospace, sans-serif;
+                            color: #000;
+                            box-sizing: border-box;
+                        }
+                        .center { text-align: center; }
+                        .hr { border-top: 1px dashed #000; margin: 8px 0; }
+                        .dhr { border-top: 2px solid #000; margin: 8px 0; }
+                    </style>
+                </head>
+                <body>
+                    <div class="center" style="font-size:13px;font-weight:bold;">${p.storeName || '昕悅早午餐'} · 廚房出餐單</div>
+                    ${payBannerHtml}
+                    <div class="center" style="font-size:32px;font-weight:900;letter-spacing:1px;line-height:1.1;">
+                        #${order.orderNumber || '---'}
+                    </div>
+                    <div class="center" style="font-size:20px;font-weight:900;margin-top:4px;">
+                        ${order.diningType || '內用'}${order.tableNumber ? ' · ' + order.tableNumber : ''}
+                    </div>
+                    <div class="hr"></div>
+                    <div style="font-size:13px;font-weight:bold;line-height:1.5;">
+                        <div>取餐人：${order.customerName || '現場貴賓'}${order.customerPhone ? ' (' + order.customerPhone + ')' : ''}</div>
+                        ${order.deliveryAddress ? `<div>地址：${order.deliveryAddress}</div>` : ''}
+                        <div>時間：${order.timeString || ''}｜${order.pickupTime || '盡快製作'}</div>
+                    </div>
+                    <div class="dhr"></div>
+                    ${itemsHtml}
+                    ${order.deliveryFee ? `<div style="display:flex;justify-content:space-between;font-size:13px;margin-top:4px;"><span>外送運費</span><span>+$${order.deliveryFee}</span></div>` : ''}
+                    ${order.note ? `<div class="hr"></div><div style="border:2px solid #000;padding:6px;font-size:16px;font-weight:900;">⚠️ 備註：${order.note}</div>` : ''}
+                    <div class="dhr"></div>
+                    <div style="display:flex;justify-content:space-between;font-size:17px;font-weight:900;">
+                        <span>合計金額</span>
+                        <span>NT$ ${order.totalPrice || 0}</span>
+                    </div>
+                    <script>
+                        window.onload = function() {
+                            window.print();
+                            setTimeout(function() { window.close(); }, 400);
+                        };
+                    <\/script>
+                </body>
+                </html>
+            `);
+            printWin.document.close();
+        }
+
+        window.printOrderReceipt = function(order, isSilentAuto = false) {
+            if (!order) return;
+            const mode = (window.storeProfileState?.printerMode) || 'rawbt';
+            if (mode === 'rawbt') {
+                try {
+                    const text = buildPlainReceiptText(order);
+                    const encoded = encodeURIComponent(text);
+                    const iframe = document.createElement('iframe');
+                    iframe.style.display = 'none';
+                    iframe.src = 'rawbt:' + encoded;
+                    document.body.appendChild(iframe);
+                    setTimeout(() => { try { document.body.removeChild(iframe); } catch (e) {} }, 2000);
+                    if (!isSilentAuto) {
+                        showToast(`🖨️ 已發送收據 #${order.orderNumber} 至 RawBT 出單機！`);
+                    }
+                } catch (e) {
+                    triggerBrowserThermalPrint(order);
+                }
+            } else {
+                triggerBrowserThermalPrint(order);
+            }
+        };
+
+        window.printOrderReceiptById = function(orderId) {
+            const list = window.getCloudOrders ? window.getCloudOrders() : [];
+            const order = list.find(o => o.id === orderId);
+            if (!order) {
+                showToast('找不到該筆訂單資料');
+                return;
+            }
+            window.printOrderReceipt(order, false);
+        };
+
+        window.testReceiptPrintSample = function() {
+            const sample = {
+                orderNumber: '888',
+                diningType: '內用',
+                tableNumber: '3號桌',
+                customerName: '測試貴賓',
+                customerPhone: '0912345678',
+                pickupTime: '現場 / 盡快製作',
+                timeString: new Date().toLocaleTimeString('zh-TW', { hour: '2-digit', minute: '2-digit' }),
+                items: [
+                    { name: '厚切牛肉堡+蛋', price: 80, qty: 1 },
+                    { name: '起司蛋餅', price: 40, qty: 2 },
+                    { name: '鮮奶茶 (大/冰)', price: 30, qty: 1 }
+                ],
+                note: '蛋全熟、不加胡椒',
+                paymentMethod: 'counter',
+                paymentStatus: 'unpaid',
+                totalPrice: 190
+            };
+            window.printOrderReceipt(sample, false);
+        };
 
         function renderClosedDatesTags() {
             const container = document.getElementById('cfg-closed-dates-list');
@@ -2699,10 +3089,45 @@
             showToast('🔄 所有店舖設定與菜單已恢復出廠預設值！');
         }
 
+        function getMenuItemsGridClass() {
+            if (menuOrientationLayout === 'portrait') return 'grid grid-cols-1 max-w-2xl mx-auto gap-4';
+            if (menuOrientationLayout === 'landscape') return 'grid grid-cols-2 lg:grid-cols-3 gap-3.5 sm:gap-4';
+            return 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5 sm:gap-4';
+        }
+
+        function updateMenuOrientationUi() {
+            const btn = document.getElementById('btn-menu-orientation');
+            if (!btn) return;
+            const labels = {
+                auto: '📐 菜單版面：自動',
+                landscape: '📟 菜單版面：橫向',
+                portrait: '📱 菜單版面：直向'
+            };
+            btn.textContent = labels[menuOrientationLayout] || labels.auto;
+            btn.className = menuOrientationLayout === 'auto'
+                ? 'px-4 py-2.5 rounded-full bg-wine-900 hover:bg-wine-800 text-gold-400 border border-gold-400/50 text-xs font-bold whitespace-nowrap transition shadow-xs flex items-center justify-center gap-1.5'
+                : 'px-4 py-2.5 rounded-full bg-gold-500 hover:bg-gold-400 text-wine-950 border border-gold-300 text-xs font-black whitespace-nowrap transition shadow-md flex items-center justify-center gap-1.5';
+        }
+
+        window.cycleMenuOrientationLayout = function() {
+            const order = ['auto', 'landscape', 'portrait'];
+            menuOrientationLayout = order[(order.indexOf(menuOrientationLayout) + 1) % order.length];
+            try { localStorage.setItem('xinyue_menu_orientation', menuOrientationLayout); } catch (e) {}
+            updateMenuOrientationUi();
+            renderMenu(document.getElementById('menu-search')?.value.trim() || '');
+            const tips = {
+                auto: '已切回「自動響應式版面」（依裝置直拿或橫放自動調整）',
+                landscape: '📟 已切換為「橫向多欄菜單」，平板橫看一覽無遺！',
+                portrait: '📱 已切換為「直向單欄大卡」，手機與單手點餐更清晰！'
+            };
+            showToast(tips[menuOrientationLayout]);
+        };
+
         function renderMenu(searchKeyword = '') {
             const container = document.getElementById('menu-container');
             if (!container) return;
             const keyword = searchKeyword.toLowerCase();
+            const gridCls = getMenuItemsGridClass();
             let html = '';
 
             menuData.forEach(cat => {
@@ -2719,7 +3144,7 @@
                             </div>
                             <p class="text-xs sm:text-sm text-stone-500">${cat.subtitle || ''}</p>
                         </div>
-                        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5 sm:gap-4">
+                        <div class="${gridCls}">
                             ${filteredItems.map(item => renderMenuItemCard(cat, item)).join('')}
                         </div>
                     </div>
@@ -2880,7 +3305,6 @@
                 phoneLabel.textContent = '聯絡電話 (外送必填) *';
                 phoneLabel.className = 'block text-xs text-wine-800 font-bold mb-1';
                 if (window.paymentMethod === 'counter') {
-                    const p = window.storeProfileState || {};
                     const licensedPays = (typeof getLicensedPayments === 'function') ? getLicensedPayments() : [];
                     const preferred = licensedPays.includes('linepay') ? 'linepay' : 'transfer';
                     setPaymentMethod(preferred);
@@ -2979,6 +3403,7 @@
             }
 
             const container = document.getElementById('cart-items-container');
+            if (!container) return;
             if (window.cart.length === 0) {
                 container.innerHTML = `<div class="text-center text-stone-400 py-8"><p class="font-serif text-base text-stone-500">您的點餐清單目前是空的</p></div>`;
                 return;
@@ -3013,7 +3438,7 @@
             document.body.removeChild(ta);
         }
 
-        // ================= 老闆後台入口、授權檢查與分頁切換 =================
+        // ================= 老闆後台入口、雙層密碼管理、授權檢查與分頁切換 =================
         function openOwnerLoginModal() {
             if (window.isOwnerLoggedIn) { enterOwnerMode(); return; }
             document.getElementById('owner-login-error').classList.add('hidden');
@@ -3025,16 +3450,16 @@
         async function verifyOwnerPassword(e) {
             e.preventDefault();
             const entered = document.getElementById('owner-password-input').value.trim();
-            const hash = await sha256Hex(entered);
-            const superHash = window.currentSuperAdminPasscodeHash || await sha256Hex(DEFAULT_SUPER_ADMIN_PASSCODE);
-            const ownerHash = window.currentOwnerPasscodeHash || await sha256Hex(DEFAULT_OWNER_PASSCODE);
+            const hash = await hashText(entered);
+            const superHash = window.currentSuperAdminPasscodeHash || SHA_SUPER_DEFAULT;
+            const ownerHash = window.currentOwnerPasscodeHash || SHA_OWNER_DEFAULT;
 
             if (hash === superHash) {
                 window.isOwnerLoggedIn = true;
                 window.isSuperAdminSession = true;
                 closeOwnerLoginModal();
                 enterOwnerMode();
-                showToast('🛡️ 已以「超級管理員」身份登入');
+                showToast('🛡️ 已以「超級管理員」身份登入，擁有全權密碼重設權限');
             } else if (hash === ownerHash) {
                 window.isOwnerLoggedIn = true;
                 window.isSuperAdminSession = false;
@@ -3049,10 +3474,11 @@
             const isSuper = !!window.isSuperAdminSession;
             const topBadge = document.getElementById('super-admin-mode-badge');
             const roleBadge = document.getElementById('passcode-role-badge');
-            const banner = document.getElementById('super-admin-passcode-banner');
+            const superBanner = document.getElementById('super-admin-passcode-banner');
             const oldWrap = document.getElementById('old-passcode-input-wrap');
+
             if (topBadge) topBadge.classList.toggle('hidden', !isSuper);
-            if (banner) banner.classList.toggle('hidden', !isSuper);
+            if (superBanner) superBanner.classList.toggle('hidden', !isSuper);
             if (oldWrap) oldWrap.classList.toggle('hidden', isSuper);
             if (roleBadge) {
                 roleBadge.textContent = isSuper ? '🛡️ 超級管理員代管模式' : '👤 店家管理員模式';
@@ -3063,8 +3489,11 @@
         }
 
         async function persistNewOwnerPasscode(newPass) {
-            window.currentOwnerPasscodeHash = await sha256Hex(newPass);
+            window.currentOwnerPasscodeHash = await hashText(newPass);
             window.storeProfileState.ownerPasscodeHash = window.currentOwnerPasscodeHash;
+            try {
+                localStorage.setItem('xinyue_store_profile', JSON.stringify(window.storeProfileState));
+            } catch (e) {}
             if (window.saveDynamicStoreProfileToCloud) {
                 await window.saveDynamicStoreProfileToCloud(window.storeProfileState);
             }
@@ -3078,30 +3507,41 @@
             const confirmVal = document.getElementById('cfg-confirm-passcode')?.value.trim() || '';
 
             if (!window.isSuperAdminSession) {
-                const oldHash = await sha256Hex(oldVal);
-                const cur = window.currentOwnerPasscodeHash || await sha256Hex(DEFAULT_OWNER_PASSCODE);
-                if (oldHash !== cur) {
+                const cur = window.currentOwnerPasscodeHash || SHA_OWNER_DEFAULT;
+                if ((await hashText(oldVal)) !== cur) {
                     showToast('❌ 目前登入密碼輸入錯誤，無法修改！');
+                    document.getElementById('cfg-old-passcode')?.focus();
                     return;
                 }
             }
-            if (newVal.length < 4) { showToast('⚠️ 新密碼至少需要 4 個字元'); return; }
-            if (newVal !== confirmVal) { showToast('❌ 兩次輸入的新密碼不一致'); return; }
-            const superHash = window.currentSuperAdminPasscodeHash || await sha256Hex(DEFAULT_SUPER_ADMIN_PASSCODE);
-            if (await sha256Hex(newVal) === superHash) { showToast('⚠️ 此密碼為系統保留，請改用其他密碼'); return; }
+            if (newVal.length < 4) {
+                showToast('⚠️ 新密碼至少需要 4 個字元或數字喔！');
+                document.getElementById('cfg-new-passcode')?.focus();
+                return;
+            }
+            if (newVal !== confirmVal) {
+                showToast('❌ 兩次輸入的新密碼不一致，請重新確認！');
+                document.getElementById('cfg-confirm-passcode')?.focus();
+                return;
+            }
+            const superHash = window.currentSuperAdminPasscodeHash || SHA_SUPER_DEFAULT;
+            if ((await hashText(newVal)) === superHash) {
+                showToast('⚠️ 此密碼為系統保留密碼，請設定其他新密碼！');
+                return;
+            }
 
             await persistNewOwnerPasscode(newVal);
             ['cfg-old-passcode', 'cfg-new-passcode', 'cfg-confirm-passcode'].forEach(id => {
                 const el = document.getElementById(id);
                 if (el) el.value = '';
             });
-            showToast('🔑 後台登入密碼已更新並同步到所有裝置');
+            showToast('🔑 店家後台登入密碼已更新並同步至雲端！');
         };
 
         window.superAdminResetDefaultPasscode = async function() {
             if (!window.isSuperAdminSession) return;
             await persistNewOwnerPasscode(DEFAULT_OWNER_PASSCODE);
-            showToast(`🛡️ 已重設為預設密碼（${DEFAULT_OWNER_PASSCODE}）並同步雲端`);
+            showToast(`🛡️ 已為店家重設為預設密碼（${DEFAULT_OWNER_PASSCODE}）並同步雲端！`);
         };
 
         window.checkOwnerLicenseUi = function() {
@@ -3142,20 +3582,16 @@
             const enforce = function() {
                 try {
                     if (!window.isSystemServiceSuspended || !window.isSystemServiceSuspended()) return;
-
                     const dash = document.getElementById('owner-dashboard');
-                    if (!dash || dash.classList.contains('hidden')) return; // 沒進後台就不用管
-
+                    if (!dash || dash.classList.contains('hidden')) return;
                     const overlay = document.getElementById('owner-suspended-overlay');
                     if (!overlay) {
-                        // 遮罩被整段刪除 → 直接換成鎖定畫面，不給繞過
                         document.body.innerHTML = lockBodyHtml;
                         return;
                     }
                     if (overlay.classList.contains('hidden')) overlay.classList.remove('hidden');
                     if (overlay.style.display !== 'flex') overlay.style.display = 'flex';
                     if (overlay.style.zIndex !== '9999') overlay.style.zIndex = '9999';
-
                     const msgText = (window.systemLicense && window.systemLicense.lockMessage)
                         || '您的系統月租服務授權已到期，請聯繫系統服務專員辦理續約。';
                     const msgEl = document.getElementById('owner-suspended-msg');
@@ -3228,7 +3664,6 @@
             }
         }
 
-        // 設定頁四個子分頁：基本 / 金流 / 物流 / 外送發票
         function switchSettingsSubTab(subKey) {
             ['basic', 'payment', 'logistics', 'delivery'].forEach(k => {
                 const btn = document.getElementById('cfg-subtab-' + k);
@@ -3281,18 +3716,140 @@
             ['active', 'completed', 'cancelled', 'all'].forEach(f => {
                 const btn = document.getElementById(`filter-${f}`);
                 if (btn) btn.className = f === filter
-                    ? 'px-3.5 py-1.5 rounded-full text-xs font-bold bg-gold-500 text-wine-950 transition'
-                    : 'px-3.5 py-1.5 rounded-full text-xs font-medium bg-wine-900 text-cream-200 border border-gold-400/30 transition';
+                    ? 'py-2 px-2 sm:px-4 rounded-full text-xs font-bold bg-gold-500 text-wine-950 whitespace-nowrap text-center transition'
+                    : 'py-2 px-2 sm:px-4 rounded-full text-xs font-medium bg-wine-900 text-cream-200 border border-gold-400/30 whitespace-nowrap text-center transition';
             });
             refreshOwnerOrdersView();
+        }
+
+        function toggleOrderDateDrawer() {
+            const drawer = document.getElementById('owner-date-filter-drawer');
+            const btn = document.getElementById('btn-toggle-date-drawer');
+            if (!drawer) return;
+            const willOpen = drawer.classList.contains('hidden');
+            drawer.classList.toggle('hidden', !willOpen);
+            if (btn) btn.textContent = willOpen ? '📅 日期篩選 ▴' : '📅 日期篩選 ▾';
+        }
+
+        function toggleDeliverySimDrawer() {
+            const drawer = document.getElementById('owner-delivery-sim-drawer');
+            const btn = document.getElementById('btn-toggle-sim-drawer');
+            if (!drawer) return;
+            const willOpen = drawer.classList.contains('hidden');
+            drawer.classList.toggle('hidden', !willOpen);
+            if (btn) btn.textContent = willOpen ? '🚀 外送演示 ▴' : '🚀 外送演示 ▾';
         }
 
         function refreshOwnerOrdersView() {
             if (window.getCloudOrders) window.renderOwnerOrders(window.getCloudOrders());
         }
 
+        function toggleKitchenBatchCollapse() {
+            isKitchenBatchCollapsed = !isKitchenBatchCollapsed;
+            const listEl = document.getElementById('kitchen-batch-items-list');
+            const btnEl = document.getElementById('btn-toggle-batch-collapse');
+            if (listEl) listEl.classList.toggle('hidden', isKitchenBatchCollapsed);
+            if (btnEl) btnEl.textContent = isKitchenBatchCollapsed ? '展開明細 ▾' : '收合 ▴';
+        }
+
+        function renderKitchenBatchSummary(orders) {
+            const activeOrders = (orders || []).filter(o => o.status === 'pending' || o.status === 'preparing');
+            const itemMap = {};
+            let totalUnits = 0;
+
+            activeOrders.forEach(o => {
+                (o.items || []).forEach(it => {
+                    const key = it.name || '未命名餐點';
+                    const q = Number(it.qty || 1);
+                    itemMap[key] = (itemMap[key] || 0) + q;
+                    totalUnits += q;
+                });
+            });
+
+            const badgeEl = document.getElementById('kitchen-batch-total-badge');
+            const listEl = document.getElementById('kitchen-batch-items-list');
+            if (badgeEl) badgeEl.textContent = `共 ${totalUnits} 份待做`;
+            if (!listEl) return;
+
+            const sortedEntries = Object.entries(itemMap).sort((a, b) => b[1] - a[1]);
+            if (sortedEntries.length === 0) {
+                listEl.innerHTML = `<span class="col-span-2 text-xs text-cream-200/60">目前沒有待製作的餐點喔！</span>`;
+                return;
+            }
+
+            listEl.innerHTML = sortedEntries.map(([name, qty]) => `
+                <div class="flex sm:inline-flex items-center justify-between gap-2 px-3 py-1.5 rounded-xl bg-wine-950/90 border ${qty >= 3 ? 'border-amber-400 shadow-xs' : 'border-gold-400/35'} text-xs sm:text-sm min-w-0">
+                    <span class="font-bold text-cream-50 truncate">${name}</span>
+                    <span class="px-2 py-0.5 rounded-lg font-black shrink-0 ${qty >= 2 ? 'bg-rose-600 text-white' : 'bg-amber-400 text-wine-950'} text-xs">×${qty}</span>
+                </div>
+            `).join('');
+        }
+
+        function toggleKitchenLargeMode() {
+            isKitchenLargeMode = !isKitchenLargeMode;
+            try { localStorage.setItem('xinyue_kitchen_large_mode', isKitchenLargeMode ? '1' : '0'); } catch (e) {}
+            updateKitchenLargeModeUi();
+            refreshOwnerOrdersView();
+            showToast(isKitchenLargeMode ? '🔍 已開啟「廚房大字模式」，品項與備註已放大！' : '已切回標準看板檢視');
+        }
+
+        function updateOwnerOrientationUi() {
+            const btn = document.getElementById('btn-owner-orientation');
+            if (!btn) return;
+            const labels = {
+                auto: '📐 版面：自動',
+                landscape: '📟 版面：橫向',
+                portrait: '📱 版面：直向'
+            };
+            btn.textContent = labels[ownerOrientationLayout] || labels.auto;
+            btn.className = ownerOrientationLayout === 'auto'
+                ? 'px-3 py-2 rounded-full text-xs font-bold bg-wine-900 text-sky-300 border border-sky-400/50 hover:bg-wine-800 whitespace-nowrap transition text-center'
+                : 'px-3 py-2 rounded-full text-xs font-black bg-sky-400 text-wine-950 border border-sky-300 shadow-md whitespace-nowrap transition text-center';
+        }
+
+        window.cycleOwnerOrientationLayout = function() {
+            const order = ['auto', 'landscape', 'portrait'];
+            ownerOrientationLayout = order[(order.indexOf(ownerOrientationLayout) + 1) % order.length];
+            try { localStorage.setItem('xinyue_owner_orientation', ownerOrientationLayout); } catch (e) {}
+            updateOwnerOrientationUi();
+            updateKitchenLargeModeUi();
+            const tips = {
+                auto: '已切回「自動響應式看板」（依平板橫直方向自動調整）',
+                landscape: '📟 已強制切換為「橫向多欄接單看板」，平板橫看多單並排更清晰！',
+                portrait: '📱 已強制切換為「直向單欄大卡看板」，專注逐筆核對更順手！'
+            };
+            showToast(tips[ownerOrientationLayout]);
+        };
+
+        function updateKitchenLargeModeUi() {
+            const btn = document.getElementById('btn-kitchen-large-mode');
+            const grid = document.getElementById('owner-orders-grid');
+            if (btn) {
+                btn.textContent = isKitchenLargeMode ? '🔍 大字：開' : '🔍 大字：關';
+                btn.className = isKitchenLargeMode
+                    ? 'px-3 py-2 rounded-full text-xs font-black bg-amber-400 text-wine-950 border border-amber-300 shadow-md whitespace-nowrap transition text-center'
+                    : 'px-3 py-2 rounded-full text-xs font-bold bg-wine-900 text-amber-300 border border-amber-400/50 hover:bg-wine-800 whitespace-nowrap transition text-center';
+            }
+            if (grid) {
+                if (ownerOrientationLayout === 'portrait') {
+                    grid.className = 'grid grid-cols-1 max-w-2xl mx-auto gap-5 sm:gap-6';
+                } else if (ownerOrientationLayout === 'landscape') {
+                    grid.className = isKitchenLargeMode
+                        ? 'grid grid-cols-2 gap-4 sm:gap-5'
+                        : 'grid grid-cols-2 md:grid-cols-3 gap-4 sm:gap-5';
+                } else {
+                    grid.className = isKitchenLargeMode
+                        ? 'grid grid-cols-1 lg:grid-cols-2 gap-5 sm:gap-6'
+                        : 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-6';
+                }
+            }
+        }
+
         window.renderOwnerOrders = function(rawOrders) {
+            updateOwnerOrientationUi();
+            updateKitchenLargeModeUi();
             const orders = filterOrdersByDateTime(rawOrders, 'orders-date-start', 'orders-date-end', 'orders-time-start', 'orders-time-end');
+            renderKitchenBatchSummary(orders);
             const validOrders = orders.filter(o => o.status !== 'cancelled');
             document.getElementById('stat-pending').textContent = orders.filter(o => o.status === 'pending').length;
             document.getElementById('stat-preparing').textContent = orders.filter(o => o.status === 'preparing').length;
@@ -3336,10 +3893,10 @@
                     : order.source === 'foodpanda'
                     ? `<span class="px-2 py-0.5 rounded-full bg-pink-600 text-white font-bold text-[10px]">🐼 foodpanda</span>`
                     : `<span class="px-2 py-0.5 rounded-full bg-wine-100 text-wine-800 font-bold text-[10px]">🏪 品牌官網</span>`;
-                const badgeHtml = isPending ? `<span class="px-2.5 py-1 rounded-full bg-amber-500 text-wine-950 font-bold text-xs">🔔 新訂單</span>`
-                    : isPreparing ? `<span class="px-2.5 py-1 rounded-full bg-sky-500 text-white font-bold text-xs">🍳 製作中</span>`
-                    : isCancelled ? `<span class="px-2.5 py-1 rounded-full bg-rose-600 text-white font-bold text-xs">✕ 已取消</span>`
-                    : `<span class="px-2.5 py-1 rounded-full bg-emerald-600 text-white font-bold text-xs">✓ 已完成</span>`;
+                const badgeHtml = isPending ? `<span class="px-2.5 py-1 rounded-full bg-amber-500 text-wine-950 font-bold text-xs whitespace-nowrap">🔔 新訂單</span>`
+                    : isPreparing ? `<span class="px-2.5 py-1 rounded-full bg-sky-500 text-white font-bold text-xs whitespace-nowrap">🍳 製作中</span>`
+                    : isCancelled ? `<span class="px-2.5 py-1 rounded-full bg-rose-600 text-white font-bold text-xs whitespace-nowrap">✕ 已取消</span>`
+                    : `<span class="px-2.5 py-1 rounded-full bg-emerald-600 text-white font-bold text-xs whitespace-nowrap">✓ 已完成</span>`;
 
                 return `
                     <div class="rounded-3xl bg-[#fffcf7] text-wine-950 p-5 border-2 ${isPending ? 'border-amber-400 shadow-xl' : 'border-gold-400/50 shadow-lg'} flex flex-col justify-between">
@@ -3352,6 +3909,7 @@
                                 </div>
                                 <div class="flex items-center gap-1.5">
                                     ${badgeHtml}
+                                    <button onclick="printOrderReceiptById('${order.id}')" class="p-1.5 rounded-lg bg-wine-100 hover:bg-wine-200 text-wine-900 text-xs font-bold" title="列印 58mm/80mm 收據">🖨️</button>
                                     <button onclick="openDeleteOrderModal('${order.id}', '${order.orderNumber}')" class="p-1.5 rounded-lg bg-stone-100 hover:bg-rose-100 text-stone-500 hover:text-rose-700 text-xs" title="刪除測試訂單">🗑️</button>
                                 </div>
                             </div>
@@ -3363,16 +3921,24 @@
                                 </span>
                                 ${!isCancelled && order.paymentMethod !== 'platform_paid' ? `<button onclick="window.togglePaymentStatus('${order.id}', '${order.paymentStatus || 'unpaid'}')" class="px-2 py-1 rounded bg-emerald-600 text-white font-bold">${isPaid ? '取消收款' : '✓ 標記已收款'}</button>` : ''}
                             </div>
-                            <div class="bg-cream-100 rounded-xl p-3 mb-3 text-xs space-y-1 border border-cream-200">
-                                <div class="flex justify-between"><span>取餐人：</span><strong>${order.customerName} (${order.diningType}${order.tableNumber ? ' ' + order.tableNumber : ''})</strong></div>
+                            <div class="bg-cream-100 rounded-xl p-3 mb-3 ${isKitchenLargeMode ? 'text-sm' : 'text-xs'} space-y-1.5 border border-cream-200">
+                                <div class="flex justify-between items-center"><span>取餐人：</span><strong class="${isKitchenLargeMode ? 'text-base' : ''}">${order.customerName} (${order.diningType}${order.tableNumber ? ' ' + order.tableNumber : ''})</strong></div>
                                 ${order.customerPhone ? `<div class="flex justify-between"><span>電話：</span><a href="tel:${order.customerPhone}" class="text-sky-700 underline font-bold">${order.customerPhone}</a></div>` : ''}
                                 ${order.deliveryAddress ? `<div class="pt-1 border-t border-cream-300 text-amber-900"><span>📍 外送地址：</span><strong>${order.deliveryAddress}</strong>${order.deliveryFee ? ` (含運費 $${order.deliveryFee})` : ''}</div>` : ''}
                                 ${order.courierInfo ? `<div class="p-2 rounded-lg bg-orange-100 text-orange-900 font-bold text-[11px]">🚚 ${order.courierInfo}</div>` : ''}
                                 <div class="flex justify-between"><span>預計取餐：</span><strong>${order.pickupTime}</strong></div>
-                                ${order.note ? `<div class="text-rose-700 font-bold pt-1 border-t border-cream-300">備註：${order.note}</div>` : ''}
+                                ${order.note ? `<div class="mt-1.5 p-2.5 rounded-xl bg-amber-100 border-2 border-rose-500 text-rose-900 font-black ${isKitchenLargeMode ? 'text-base' : 'text-sm'}">⚠️ 備註：${order.note}</div>` : ''}
                             </div>
-                            <div class="space-y-1 mb-4 max-h-36 overflow-y-auto">
-                                ${(order.items || []).map(i => `<div class="flex justify-between text-xs py-1 border-b border-dashed border-stone-200"><span>${i.name} <strong>x${i.qty}</strong></span><span>$${i.price * i.qty}</span></div>`).join('')}
+                            <div class="space-y-1.5 mb-4">
+                                ${(order.items || []).map(i => `
+                                    <div class="flex items-center justify-between gap-2 py-2 px-2.5 rounded-xl bg-white border border-stone-200/80 ${isKitchenLargeMode ? 'text-lg' : 'text-sm sm:text-base'}">
+                                        <span class="font-bold text-wine-950 leading-snug">${i.name}</span>
+                                        <div class="flex items-center gap-2 shrink-0">
+                                            <span class="px-2.5 py-0.5 rounded-lg font-black ${i.qty > 1 ? 'bg-rose-600 text-white shadow-xs' : 'bg-wine-100 text-wine-900'} ${isKitchenLargeMode ? 'text-lg' : 'text-sm'}">x${i.qty}</span>
+                                            <span class="text-xs text-stone-500 font-mono">$${i.price * i.qty}</span>
+                                        </div>
+                                    </div>
+                                `).join('')}
                             </div>
                         </div>
                         <div class="pt-3 border-t border-wine-800/15 space-y-2.5">
@@ -3726,7 +4292,6 @@
                 };
             }
 
-            // invoices 統一發票明細
             const prefix = window.storeProfileState?.invoicePrefix || 'XY';
             const rows = validOrders.map((o, idx) => {
                 const invNo = `${prefix}-${String(10000000 + Number(o.orderNumber || idx)).slice(-8)}`;
@@ -3863,11 +4428,9 @@
         });
 
         function initPwaAppSupport() {
-            // 註冊 Service Worker：讓「安裝桌面接單 App」真正可用（iOS/Android/桌機）
             if ('serviceWorker' in navigator) {
                 navigator.serviceWorker.register('sw.js').catch(() => {});
             }
-            // 從桌面 App 或以 ?mode=owner 開啟時，直接跳出老闆密碼視窗
             const params = new URLSearchParams(window.location.search);
             if (params.get('mode') === 'owner') {
                 setTimeout(() => {
@@ -3895,6 +4458,7 @@
                 showToast('📲 安裝：點網址列右側「安裝」圖示，或瀏覽器「⋮ 選單」➔「安裝應用程式」');
             }
         };
+
         let toastTimeout;
         window.showToast = function(message) {
             const toast = document.getElementById('toast-msg');
@@ -3908,6 +4472,22 @@
                 toast.classList.add('opacity-0');
             }, 2800);
         };
+
+        window.scrollToPageTop = function() {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        };
+
+        window.addEventListener('scroll', () => {
+            const btn = document.getElementById('scroll-to-top-btn');
+            if (!btn) return;
+            if (window.scrollY > 220) {
+                btn.classList.remove('opacity-0', 'pointer-events-none', 'translate-y-3');
+                btn.classList.add('opacity-100', 'translate-y-0');
+            } else {
+                btn.classList.add('opacity-0', 'pointer-events-none', 'translate-y-3');
+                btn.classList.remove('opacity-100', 'translate-y-0');
+            }
+        }, { passive: true });
     </script>
 </body>
 </html>
