@@ -78,6 +78,16 @@
         }
         .twinkle-star { animation: softTwinkle 4s ease-in-out infinite; }
         .twinkle-star-delay { animation: softTwinkle 4s ease-in-out 2s infinite; }
+        @keyframes marqueeSlide {
+            0% { transform: translateX(0%); }
+            100% { transform: translateX(-50%); }
+        }
+        .animate-marquee-track {
+            display: inline-flex;
+            white-space: nowrap;
+            animation: marqueeSlide 18s linear infinite;
+        }
+        .animate-marquee-track:hover { animation-play-state: paused; }
     </style>
 </head>
 <body class="font-sans antialiased selection:bg-wine-800 selection:text-cream-50">
@@ -207,20 +217,21 @@
                     </div>
                 </div>
 
-                <!-- 🍳 待出餐點即時彙總牆 -->
-                <div id="kitchen-batch-summary-card" class="p-3.5 sm:p-4 rounded-2xl bg-gradient-to-r from-amber-950/85 via-wine-900/90 to-wine-950/90 border border-amber-400/45 shadow-md space-y-2.5">
-                    <div class="flex items-center justify-between gap-2">
+                <!-- 🍳 待出餐點總量統計（可切換範圍、點擊劃記、大字模式） -->
+                <div id="kitchen-batch-summary-card" class="p-4 sm:p-5 rounded-3xl bg-wine-900/80 border-2 border-gold-400/45 shadow-lg space-y-3">
+                    <div class="flex flex-wrap items-center justify-between gap-2">
                         <div class="flex items-center gap-2 flex-wrap">
-                            <span class="text-xs sm:text-sm font-black text-amber-300 whitespace-nowrap">🍳 待出餐點統計</span>
-                            <span id="kitchen-batch-total-badge" class="px-2.5 py-0.5 rounded-full bg-amber-400 text-wine-950 font-black text-[11px] whitespace-nowrap">共 0 份待做</span>
+                            <span id="kitchen-batch-title" class="font-serif font-bold text-gold-400 text-base sm:text-lg">🍳 待出餐點總量統計</span>
+                            <span id="kitchen-batch-total-badge" class="px-2.5 py-0.5 rounded-full bg-amber-400 text-wine-950 font-black text-xs">共 0 份</span>
                         </div>
-                        <button type="button" onclick="toggleKitchenBatchCollapse()" id="btn-toggle-batch-collapse" class="text-[11px] font-bold text-cream-200/80 hover:text-gold-400 px-2.5 py-1 rounded-lg bg-wine-950/70 border border-gold-400/25 whitespace-nowrap shrink-0">
-                            收合 ▴
-                        </button>
+                        <div class="flex items-center gap-1.5 flex-wrap">
+                            <button onclick="setKitchenBatchScope('active')" id="batch-scope-active" class="px-2.5 py-1 rounded-lg bg-gold-500 text-wine-950 font-bold text-xs transition">全部待做</button>
+                            <button onclick="setKitchenBatchScope('pending')" id="batch-scope-pending" class="px-2.5 py-1 rounded-lg bg-wine-950 text-cream-200 border border-gold-400/30 text-xs transition">僅新單</button>
+                            <button onclick="setKitchenBatchScope('preparing')" id="batch-scope-preparing" class="px-2.5 py-1 rounded-lg bg-wine-950 text-cream-200 border border-gold-400/30 text-xs transition">僅製作中</button>
+                            <button onclick="clearCheckedBatchItems()" id="btn-clear-batch-checks" class="hidden px-2.5 py-1 rounded-lg bg-rose-600/80 hover:bg-rose-600 text-white font-bold text-xs transition">↺ 清除劃記</button>
+                        </div>
                     </div>
-                    <div id="kitchen-batch-items-list" class="grid grid-cols-2 sm:flex sm:flex-wrap gap-2">
-                        <span class="col-span-2 text-xs text-cream-200/60">目前沒有待製作的餐點喔！</span>
-                    </div>
+                    <div id="kitchen-batch-items-grid" class="flex flex-wrap gap-2"></div>
                 </div>
 
                 <div class="px-4 py-2.5 rounded-2xl bg-wine-900/50 border border-gold-400/25 flex flex-wrap items-center justify-between gap-2 text-xs text-cream-200/85">
@@ -386,6 +397,14 @@
                                 <label class="block text-xs font-bold text-wine-900 mb-1">店舖地址</label>
                                 <input type="text" id="cfg-store-address" oninput="markOwnerHasUnsavedChanges()" class="w-full px-3.5 py-2 rounded-xl bg-cream-100 border border-cream-300">
                             </div>
+                            <div class="md:col-span-2">
+                                <label class="block text-xs font-bold text-wine-900 mb-1">⭐ Google 評論專屬連結（選填，留空則自動用店名＋地址搜尋地圖）</label>
+                                <input type="url" id="cfg-google-review-url" oninput="markOwnerHasUnsavedChanges()" placeholder="https://search.google.com/local/writereview?placeid=..." class="w-full px-3.5 py-2 rounded-xl bg-cream-100 border border-cream-300 font-mono text-xs">
+                            </div>
+                            <div class="md:col-span-2">
+                                <label class="block text-xs font-bold text-wine-900 mb-1">📝 五星好評複製範本（選填，每行一句；留空用系統預設）</label>
+                                <textarea id="cfg-review-templates" rows="3" oninput="markOwnerHasUnsavedChanges()" placeholder="每行一句好評範本，客人可一鍵複製貼到 Google 評論" class="w-full px-3.5 py-2 rounded-xl bg-cream-100 border border-cream-300 text-xs leading-relaxed"></textarea>
+                            </div>
                             <div>
                                 <label class="block text-xs font-bold text-wine-900 mb-1">收款銀行名稱與代碼</label>
                                 <input type="text" id="cfg-bank-name" oninput="markOwnerHasUnsavedChanges()" class="w-full px-3.5 py-2 rounded-xl bg-cream-100 border border-cream-300">
@@ -518,6 +537,35 @@
                             <div><strong>📱 方案 B（iPad 點餐 ＋ 舊安卓手機自動印單）接線步驟：</strong></div>
                             <div>1. <strong>舊安卓手機</strong>：安裝 <strong>RawBT App</strong> 並藍牙配對出單機 ➔ 開啟本網頁登入後台 ➔ 勾選上方<strong>「此裝置作為雲端自動出單機」</strong>並保持畫面開啟。</div>
                             <div>2. <strong>櫃檯 iPad</strong>：免裝任何 App，直接用 Safari 開啟前台點餐頁放櫃檯。客人點完按送出 ➔ 雲端通知舊安卓手機 ➔ 出單機立刻無聲自動吐收據！</div>
+                        </div>
+                    </div>
+
+                    <!-- 🏷️ 桌號專屬 QR Code 產生器 -->
+                    <div id="cfg-card-table-qr" data-cfgsub="basic" class="rounded-3xl bg-[#fffcf7] text-wine-950 p-6 border border-gold-400/50 shadow-lg space-y-4">
+                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-wine-800/15">
+                            <div>
+                                <h3 class="font-serif text-lg font-bold text-wine-900">🏷️ 桌號專屬 QR Code ＋ 一鍵列印桌牌</h3>
+                                <p class="text-xs text-stone-500 mt-0.5">客人掃描桌牌後，點餐單會自動選「內用」並鎖定該桌號</p>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-12 gap-5 items-center">
+                            <div class="md:col-span-7 space-y-3 text-xs">
+                                <div class="flex flex-wrap items-center gap-2">
+                                    <input type="text" id="qr-table-label-input" value="1號桌" oninput="updateTableQrPreview()" placeholder="輸入桌號，例如：1號桌、A2桌" class="flex-1 min-w-[160px] px-3.5 py-2 rounded-xl bg-cream-100 border border-cream-300 font-bold text-sm">
+                                    <button type="button" onclick="printTableQrCard()" class="px-4 py-2 rounded-xl bg-wine-800 hover:bg-wine-900 text-cream-50 font-bold shadow-xs transition">
+                                        🖨️ 列印這張桌牌
+                                    </button>
+                                </div>
+                                <div id="qr-quick-labels" class="flex flex-wrap gap-1.5"></div>
+                                <div class="p-2.5 rounded-xl bg-cream-100 border border-cream-200 font-mono text-[11px] text-stone-600 break-all" id="qr-target-url-display"></div>
+                            </div>
+                            <div class="md:col-span-5 flex flex-col items-center justify-center p-4 rounded-2xl bg-white border-2 border-gold-400/60 shadow-xs text-center">
+                                <span id="qr-preview-store" class="font-serif font-bold text-wine-900 text-sm">昕悅早午餐</span>
+                                <span id="qr-preview-table" class="font-serif font-black text-wine-800 text-xl my-1">1號桌</span>
+                                <img id="qr-preview-img" src="" alt="桌號 QR Code" class="w-36 h-36 rounded-lg border border-cream-200 my-1">
+                                <span class="text-[11px] text-stone-500 mt-1">📱 手機掃碼立即點餐</span>
+                            </div>
                         </div>
                     </div>
 
@@ -1972,6 +2020,8 @@
             forceClosedToday: false,
             phone: '03-5262699',
             address: '新竹市西門街266號',
+            googleReviewUrl: '',
+            reviewTemplatesText: '',
             bankName: '822 中國信託 (昕悅早午餐)',
             bankAccount: '000-1234567890',
             announcementActive: false,
@@ -2045,6 +2095,8 @@
         let ownerOrientationLayout = localStorage.getItem('xinyue_owner_orientation') || 'auto'; // 'auto' | 'landscape' | 'portrait'
         let menuOrientationLayout = localStorage.getItem('xinyue_menu_orientation') || 'auto'; // 'auto' | 'landscape' | 'portrait'
         let isKitchenBatchCollapsed = false;
+        let kitchenBatchScope = 'active';
+        const checkedBatchItemsSet = new Set();
         let activeReportType = 'itemSales';
         let ownerHasUnsavedChanges = false;
         let savedOwnerSnapshot = null;
@@ -2355,6 +2407,22 @@
                 else formEl.insertAdjacentHTML('beforeend', logiCardHtml);
             }
 
+            renderQuickQrLabels();
+            updateTableQrPreview();
+
+            // 桌牌 QR Code 掃碼進站：自動帶入桌號並鎖定
+            const tableParam = new URLSearchParams(window.location.search).get('table');
+            if (tableParam) {
+                setDiningType('內用');
+                const tableInput = document.getElementById('table-number');
+                if (tableInput) {
+                    tableInput.value = tableParam;
+                    tableInput.readOnly = true;
+                    tableInput.classList.add('bg-amber-50', 'font-bold', 'text-wine-900');
+                }
+                setTimeout(() => window.showToast(`🏷️ 已自動為您帶入「${tableParam}」點餐`), 500);
+            }
+
             window.applyDynamicStoreProfile(window.storeProfileState);
             populateStoreSettingsForm();
             updateMenuOrientationUi();
@@ -2419,8 +2487,11 @@
                 if (p.announcementActive && p.announcementText) {
                     annText.textContent = p.announcementText;
                     annBar.classList.remove('hidden');
+                    if (p.announcementText.length > 26) annText.classList.add('animate-marquee-track');
+                    else annText.classList.remove('animate-marquee-track');
                 } else {
                     annBar.classList.add('hidden');
+                    annText.classList.remove('animate-marquee-track');
                 }
             }
 
@@ -2613,6 +2684,8 @@
                 hours: document.getElementById('cfg-store-hours')?.value.trim() || '05:30 - 12:00',
                 phone: document.getElementById('cfg-store-phone')?.value.trim() || '03-5262699',
                 address: document.getElementById('cfg-store-address')?.value.trim() || '新竹市西門街266號',
+                googleReviewUrl: document.getElementById('cfg-google-review-url')?.value.trim() || '',
+                reviewTemplatesText: document.getElementById('cfg-review-templates')?.value || '',
                 bankName: document.getElementById('cfg-bank-name')?.value.trim() || '',
                 bankAccount: document.getElementById('cfg-bank-account')?.value.trim() || '',
                 announcementActive: !!document.getElementById('cfg-announcement-active')?.checked,
@@ -2694,6 +2767,8 @@
             setVal('cfg-store-hours', p.hours);
             setVal('cfg-store-phone', p.phone);
             setVal('cfg-store-address', p.address);
+            setVal('cfg-google-review-url', p.googleReviewUrl || '');
+            setVal('cfg-review-templates', p.reviewTemplatesText || '');
             setVal('cfg-bank-name', p.bankName);
             setVal('cfg-bank-account', p.bankAccount);
             setChk('cfg-announcement-active', p.announcementActive);
@@ -3252,6 +3327,142 @@
             }
         }
 
+        // ================= 桌號 QR Code 產生器與列印 =================
+        window.setQuickQrTableLabel = function(label) {
+            const input = document.getElementById('qr-table-label-input');
+            if (input) {
+                input.value = label;
+                updateTableQrPreview();
+            }
+        };
+
+        function renderQuickQrLabels() {
+            const box = document.getElementById('qr-quick-labels');
+            if (!box) return;
+            const labels = ['1號桌', '2號桌', '3號桌', '4號桌', '5號桌', '櫃檯外帶'];
+            box.innerHTML = labels.map(lbl =>
+                `<button type="button" onclick="setQuickQrTableLabel('${lbl}')" class="px-2.5 py-1 rounded-lg bg-cream-100 hover:bg-wine-100 border border-cream-300 text-wine-900 font-medium transition">${lbl}</button>`
+            ).join('');
+        }
+
+        function updateTableQrPreview() {
+            const label = (document.getElementById('qr-table-label-input')?.value || '1號桌').trim();
+            const baseUrl = window.location.href.split('?')[0].split('#')[0];
+            const targetUrl = `${baseUrl}?table=${encodeURIComponent(label)}`;
+            const qrApiUrl = `https://api.qrserver.com/v1/create-qr-code/?size=240x240&data=${encodeURIComponent(targetUrl)}`;
+
+            const storeEl = document.getElementById('qr-preview-store');
+            const tableEl = document.getElementById('qr-preview-table');
+            const imgEl = document.getElementById('qr-preview-img');
+            const urlEl = document.getElementById('qr-target-url-display');
+
+            if (storeEl) storeEl.textContent = window.storeProfileState?.storeName || '昕悅早午餐';
+            if (tableEl) tableEl.textContent = label || '1號桌';
+            if (imgEl) imgEl.src = qrApiUrl;
+            if (urlEl) urlEl.textContent = targetUrl;
+        }
+
+        window.printTableQrCard = function() {
+            const label = (document.getElementById('qr-table-label-input')?.value || '1號桌').trim();
+            const storeName = window.storeProfileState?.storeName || '昕悅早午餐';
+            const baseUrl = window.location.href.split('?')[0].split('#')[0];
+            const targetUrl = `${baseUrl}?table=${encodeURIComponent(label)}`;
+            const qrApiUrl = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(targetUrl)}`;
+
+            const win = window.open('', '_blank', 'width=420,height=560');
+            if (!win) {
+                showToast('請允許彈出視窗以列印桌牌 QR Code');
+                return;
+            }
+            win.document.write(`
+                <!DOCTYPE html>
+                <html lang="zh-TW">
+                <head><meta charset="UTF-8"><title>${storeName} - ${label} QR Code</title>
+                <style>
+                    body { font-family: sans-serif; display: flex; justify-content: center; align-items: center; min-height: 95vh; margin: 0; }
+                    .card { border: 3px solid #540e15; border-radius: 24px; padding: 28px 32px; text-align: center; width: 280px; }
+                    .store { font-size: 18px; font-weight: bold; color: #540e15; }
+                    .table { font-size: 34px; font-weight: 900; color: #70161e; margin: 8px 0 14px; border-bottom: 2px dashed #c59b27; padding-bottom: 10px; }
+                    img { width: 220px; height: 220px; }
+                    .tip { font-size: 15px; font-weight: bold; margin-top: 14px; color: #333; }
+                </style></head>
+                <body>
+                    <div class="card">
+                        <div class="store">${storeName}</div>
+                        <div class="table">${label}</div>
+                        <img src="${qrApiUrl}" onload="window.print();">
+                        <div class="tip">📱 手機掃碼立即點餐</div>
+                    </div>
+                </body></html>
+            `);
+            win.document.close();
+        };
+
+        // ================= 五星好評導流與一鍵再點 =================
+        function getStoreReviewTemplates() {
+            const p = window.storeProfileState || {};
+            const customLines = (p.reviewTemplatesText || '')
+                .split('\n')
+                .map(s => s.trim())
+                .filter(Boolean);
+            if (customLines.length > 0) return customLines;
+            return [
+                '餐點現點現做超好吃，老闆跟店員也很親切，下次還會再來！',
+                '出餐速度很快、份量十足，環境乾淨舒適，早午餐首選推薦！',
+                '食材新鮮美味、價格實惠，每次來點餐都很滿意，大推！'
+            ];
+        }
+
+        window.copyReviewAndOpenGoogle = function(templateIdx = 0) {
+            const templates = getStoreReviewTemplates();
+            const chosenText = templates[templateIdx] || templates[0];
+            const ta = document.createElement('textarea');
+            ta.value = chosenText;
+            document.body.appendChild(ta);
+            ta.select();
+            try { document.execCommand('copy'); } catch (e) {}
+            document.body.removeChild(ta);
+
+            const p = window.storeProfileState || {};
+            const targetUrl = (p.googleReviewUrl && p.googleReviewUrl.trim())
+                ? p.googleReviewUrl.trim()
+                : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${p.storeName || '昕悅早午餐'} ${p.address || ''}`)}`;
+
+            showToast('⭐ 好評文字已複製！開啟 Google 評論頁後貼上並給 5 顆星即可');
+            setTimeout(() => window.open(targetUrl, '_blank', 'noopener,noreferrer'), 350);
+        };
+
+        window.reorderPastOrder = function(orderId) {
+            const orders = window.myLocalOrders || [];
+            const target = orders.find(o => o.id === orderId);
+            if (!target || !Array.isArray(target.items)) return;
+
+            let addedCount = 0;
+            const skippedSoldOut = [];
+            target.items.forEach(it => {
+                const baseName = (it.name || '').split(' (')[0].split(' + 豬排')[0];
+                if (window.soldOutItems && (window.soldOutItems[it.name] || window.soldOutItems[baseName])) {
+                    skippedSoldOut.push(it.name);
+                    return;
+                }
+                const existingIdx = window.cart.findIndex(c => c.name === it.name);
+                if (existingIdx > -1) window.cart[existingIdx].qty += Number(it.qty || 1);
+                else window.cart.push({ name: it.name, price: Number(it.price || 0), qty: Number(it.qty || 1) });
+                addedCount += Number(it.qty || 1);
+            });
+
+            updateCartUI();
+            closeCustomerOrderModal();
+            if (addedCount > 0) {
+                toggleCart();
+                showToast(skippedSoldOut.length > 0
+                    ? `🔄 已加入 ${addedCount} 份餐點（${skippedSoldOut.join('、')} 今日已售完略過）`
+                    : `🔄 已將整張訂單共 ${addedCount} 份餐點加入點餐單！`);
+            } else {
+                showToast('抱歉，該筆訂單的品項今日剛好都已售完囉！');
+            }
+        };
+
         // ================= 購物車操作 =================
         function addToCart(name, price) {
             const baseItemName = name.split(' (')[0].split(' + 豬排')[0];
@@ -3618,6 +3829,7 @@
             window.checkOwnerLicenseUi();
             populateStoreSettingsForm();
             updatePasscodeRoleUi();
+            updateTableQrPreview();
             captureOwnerSavedSnapshot();
             if (window.getCloudOrders) window.renderOwnerOrders(window.getCloudOrders());
         }
@@ -3744,45 +3956,77 @@
             if (window.getCloudOrders) window.renderOwnerOrders(window.getCloudOrders());
         }
 
-        function toggleKitchenBatchCollapse() {
-            isKitchenBatchCollapsed = !isKitchenBatchCollapsed;
-            const listEl = document.getElementById('kitchen-batch-items-list');
-            const btnEl = document.getElementById('btn-toggle-batch-collapse');
-            if (listEl) listEl.classList.toggle('hidden', isKitchenBatchCollapsed);
-            if (btnEl) btnEl.textContent = isKitchenBatchCollapsed ? '展開明細 ▾' : '收合 ▴';
+        function setKitchenBatchScope(scope) {
+            kitchenBatchScope = scope;
+            ['active', 'pending', 'preparing'].forEach(s => {
+                const btn = document.getElementById(`batch-scope-${s}`);
+                if (!btn) return;
+                btn.className = s === scope
+                    ? 'px-2.5 py-1 rounded-lg bg-gold-500 text-wine-950 font-bold text-xs transition'
+                    : 'px-2.5 py-1 rounded-lg bg-wine-950 text-cream-200 border border-gold-400/30 text-xs transition';
+            });
+            refreshOwnerOrdersView();
+        }
+
+        function toggleBatchItemCheck(itemName) {
+            if (checkedBatchItemsSet.has(itemName)) checkedBatchItemsSet.delete(itemName);
+            else checkedBatchItemsSet.add(itemName);
+            refreshOwnerOrdersView();
+        }
+
+        function clearCheckedBatchItems() {
+            checkedBatchItemsSet.clear();
+            refreshOwnerOrdersView();
         }
 
         function renderKitchenBatchSummary(orders) {
-            const activeOrders = (orders || []).filter(o => o.status === 'pending' || o.status === 'preparing');
-            const itemMap = {};
-            let totalUnits = 0;
+            const grid = document.getElementById('kitchen-batch-items-grid');
+            const titleEl = document.getElementById('kitchen-batch-title');
+            const badgeEl = document.getElementById('kitchen-batch-total-badge');
+            const clearBtn = document.getElementById('btn-clear-batch-checks');
+            if (!grid) return;
 
-            activeOrders.forEach(o => {
+            const isLarge = !!isKitchenLargeMode;
+            if (titleEl) titleEl.className = isLarge ? 'font-serif font-black text-gold-400 text-xl sm:text-2xl' : 'font-serif font-bold text-gold-400 text-base sm:text-lg';
+            if (badgeEl) badgeEl.className = isLarge ? 'px-3.5 py-1 rounded-full bg-amber-400 text-wine-950 font-black text-sm sm:text-base' : 'px-2.5 py-0.5 rounded-full bg-amber-400 text-wine-950 font-black text-xs';
+            if (clearBtn) clearBtn.classList.toggle('hidden', checkedBatchItemsSet.size === 0);
+
+            const targetOrders = (orders || []).filter(o => {
+                if (kitchenBatchScope === 'pending') return o.status === 'pending';
+                if (kitchenBatchScope === 'preparing') return o.status === 'preparing';
+                return o.status === 'pending' || o.status === 'preparing';
+            });
+
+            const countMap = {};
+            let totalUnits = 0;
+            targetOrders.forEach(o => {
                 (o.items || []).forEach(it => {
                     const key = it.name || '未命名餐點';
                     const q = Number(it.qty || 1);
-                    itemMap[key] = (itemMap[key] || 0) + q;
+                    countMap[key] = (countMap[key] || 0) + q;
                     totalUnits += q;
                 });
             });
 
-            const badgeEl = document.getElementById('kitchen-batch-total-badge');
-            const listEl = document.getElementById('kitchen-batch-items-list');
-            if (badgeEl) badgeEl.textContent = `共 ${totalUnits} 份待做`;
-            if (!listEl) return;
+            if (badgeEl) badgeEl.textContent = `共 ${totalUnits} 份`;
 
-            const sortedEntries = Object.entries(itemMap).sort((a, b) => b[1] - a[1]);
-            if (sortedEntries.length === 0) {
-                listEl.innerHTML = `<span class="col-span-2 text-xs text-cream-200/60">目前沒有待製作的餐點喔！</span>`;
+            const entries = Object.entries(countMap).sort((a, b) => b[1] - a[1]);
+            if (entries.length === 0) {
+                grid.innerHTML = `<span class="text-xs text-cream-200/60">目前沒有待製作的餐點</span>`;
                 return;
             }
 
-            listEl.innerHTML = sortedEntries.map(([name, qty]) => `
-                <div class="flex sm:inline-flex items-center justify-between gap-2 px-3 py-1.5 rounded-xl bg-wine-950/90 border ${qty >= 3 ? 'border-amber-400 shadow-xs' : 'border-gold-400/35'} text-xs sm:text-sm min-w-0">
-                    <span class="font-bold text-cream-50 truncate">${name}</span>
-                    <span class="px-2 py-0.5 rounded-lg font-black shrink-0 ${qty >= 2 ? 'bg-rose-600 text-white' : 'bg-amber-400 text-wine-950'} text-xs">×${qty}</span>
-                </div>
-            `).join('');
+            grid.innerHTML = entries.map(([name, qty]) => {
+                const isChecked = checkedBatchItemsSet.has(name);
+                const chipCls = isLarge
+                    ? `px-5 py-3 rounded-2xl text-xl sm:text-2xl font-black border-2 cursor-pointer transition select-none flex items-center gap-3 ${isChecked ? 'bg-wine-950/60 border-stone-600 text-stone-400 line-through' : 'bg-[#fffcf7] border-gold-400 text-wine-950 shadow-lg'}`
+                    : `px-3.5 py-2 rounded-xl text-sm sm:text-base font-bold border cursor-pointer transition select-none flex items-center gap-2 ${isChecked ? 'bg-wine-950/60 border-stone-600 text-stone-400 line-through' : 'bg-[#fffcf7] border-gold-400/70 text-wine-950 shadow-xs'}`;
+                const qtyCls = isLarge
+                    ? 'px-3.5 py-1 rounded-xl bg-amber-400 text-wine-950 border-2 border-wine-950/20 font-black text-2xl sm:text-3xl shadow-xs'
+                    : 'px-2.5 py-0.5 rounded-lg bg-amber-400 text-wine-950 font-black text-base sm:text-lg shadow-2xs';
+                const safeName = name.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+                return `<button type="button" onclick="toggleBatchItemCheck('${safeName}')" class="${chipCls}"><span>${name}</span><span class="${qtyCls}">×${qty}</span></button>`;
+            }).join('');
         }
 
         function toggleKitchenLargeMode() {
@@ -4407,8 +4651,31 @@
                 : target.status === 'cancelled' ? `😔 已取消 (${target.cancelReason || ''})`
                 : '🎉 餐點已完成，可以取餐囉！';
 
+            const isCompleted = target.status === 'completed';
+            const templates = getStoreReviewTemplates();
+            const googleReviewCardHtml = isCompleted ? `
+                <div class="p-4 rounded-2xl bg-gradient-to-br from-amber-50 to-cream-100 border-2 border-gold-400 space-y-2.5 shadow-sm">
+                    <div class="flex items-center gap-2">
+                        <span class="text-lg">⭐</span>
+                        <div>
+                            <h4 class="font-serif font-bold text-wine-900 text-sm">喜歡今天的餐點嗎？給我們 5 顆星鼓勵！</h4>
+                            <p class="text-[11px] text-stone-600">點一則好評範本，會自動複製並開啟 Google 評論頁</p>
+                        </div>
+                    </div>
+                    <div class="space-y-1.5">
+                        ${templates.map((tpl, idx) => `
+                            <button type="button" onclick="window.copyReviewAndOpenGoogle(${idx})" class="w-full text-left p-2.5 rounded-xl bg-white hover:bg-amber-100/70 border border-gold-400/60 text-xs text-wine-950 transition flex items-center justify-between gap-2 group">
+                                <span class="leading-snug">「${tpl}」</span>
+                                <span class="px-2 py-1 rounded-lg bg-gold-500 text-wine-950 font-bold text-[10px] shrink-0 group-hover:bg-gold-400">複製前往 ↗</span>
+                            </button>
+                        `).join('')}
+                    </div>
+                </div>
+            ` : '';
+
             detailContainer.innerHTML = `
                 <div class="p-4 rounded-2xl bg-cream-100 border border-gold-400/50 text-center font-serif font-bold text-wine-900">${statusText}</div>
+                ${googleReviewCardHtml}
                 <div class="p-3 rounded-xl bg-white border border-cream-200 text-xs space-y-1.5">
                     <div class="flex justify-between"><span>取餐編號：</span><strong class="text-base text-wine-900">#${target.orderNumber}</strong></div>
                     <div class="flex justify-between"><span>取餐資訊：</span><strong>${target.customerName} (${target.diningType})</strong></div>
@@ -4418,6 +4685,9 @@
                     ${(target.items || []).map(i => `<div class="flex justify-between py-1 border-b border-dashed border-stone-200"><span>${i.name} x${i.qty}</span><strong>$${i.price * i.qty}</strong></div>`).join('')}
                     <div class="flex justify-between pt-2 font-bold text-sm text-wine-800"><span>合計金額</span><span>$${target.totalPrice}</span></div>
                 </div>
+                <button type="button" onclick="window.reorderPastOrder('${target.id}')" class="w-full py-3 rounded-xl bg-wine-800 hover:bg-wine-900 text-cream-50 text-xs sm:text-sm font-bold shadow-md transition flex items-center justify-center gap-1.5">
+                    <span>🔄 再點一次相同餐點</span>
+                </button>
             `;
         };
 
