@@ -174,7 +174,10 @@
                         🛡️ 超級管理員
                     </span>
                 </div>
-                <div class="grid grid-cols-3 sm:flex items-center gap-2">
+                <div class="grid grid-cols-4 sm:flex items-center gap-2">
+                    <button onclick="toggleKitchenLargeMode()" id="btn-kitchen-large-mode-top" class="px-2.5 sm:px-3 py-2 rounded-xl bg-wine-800 hover:bg-wine-700 text-cream-100 border border-gold-400/30 text-xs font-bold transition whitespace-nowrap">
+                        🔍 大字：關
+                    </button>
                     <button onclick="triggerPwaInstallOrGuide()" id="pwa-install-btn" class="px-2.5 sm:px-3.5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold shadow-sm transition flex items-center justify-center gap-1 whitespace-nowrap">
                         <span>📲 安裝App</span>
                     </button>
@@ -4068,11 +4071,18 @@
         function updateKitchenLargeModeUi() {
             const btn = document.getElementById('btn-kitchen-large-mode');
             const grid = document.getElementById('owner-orders-grid');
+            const topBtn = document.getElementById('btn-kitchen-large-mode-top');
             if (btn) {
                 btn.textContent = isKitchenLargeMode ? '🔍 大字：開' : '🔍 大字：關';
                 btn.className = isKitchenLargeMode
                     ? 'px-3 py-2 rounded-full text-xs font-black bg-amber-400 text-wine-950 border border-amber-300 shadow-md whitespace-nowrap transition text-center'
                     : 'px-3 py-2 rounded-full text-xs font-bold bg-wine-900 text-amber-300 border border-amber-400/50 hover:bg-wine-800 whitespace-nowrap transition text-center';
+            }
+            if (topBtn) {
+                topBtn.textContent = isKitchenLargeMode ? '🔍 大字：開' : '🔍 大字：關';
+                topBtn.className = isKitchenLargeMode
+                    ? 'px-2.5 sm:px-3 py-2 rounded-xl bg-amber-400 text-wine-950 border border-amber-300 text-xs font-black transition whitespace-nowrap shadow-md'
+                    : 'px-2.5 sm:px-3 py-2 rounded-xl bg-wine-800 hover:bg-wine-700 text-cream-100 border border-gold-400/30 text-xs font-bold transition whitespace-nowrap';
             }
             if (grid) {
                 if (ownerOrientationLayout === 'portrait') {
