@@ -4157,15 +4157,15 @@
                                     <button onclick="openDeleteOrderModal('${order.id}', '${order.orderNumber}')" class="p-1.5 rounded-lg bg-stone-100 hover:bg-rose-100 text-stone-500 hover:text-rose-700 text-xs" title="刪除測試訂單">🗑️</button>
                                 </div>
                             </div>
-                            <div class="mb-3 flex items-center justify-between gap-2 text-[11px]">
-                                <span class="px-2 py-0.5 rounded font-bold ${isPaid ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'}">
+                            <div class="mb-3 p-2.5 rounded-2xl flex items-center justify-between gap-2 ${isPaid ? 'bg-emerald-600 text-white' : 'bg-amber-400 text-wine-950 border-2 border-amber-500'} shadow-xs">
+                                <span class="${isKitchenLargeMode ? 'text-base sm:text-lg' : 'text-xs sm:text-sm'} font-black tracking-wide leading-snug">
                                     ${isPaid
-                                        ? (order.paymentMethod === 'platform_paid' ? '💰 外送平台已付款' : (THIRD_PARTY_PAY_METHODS.includes(order.paymentMethod) ? `${PAYMENT_METHOD_META[order.paymentMethod].label} 已收款` : '💰 已確認收款'))
-                                        : (order.paymentMethod === 'transfer' ? `💳 轉帳後五碼:${order.transferLast5}` : (THIRD_PARTY_PAY_METHODS.includes(order.paymentMethod) ? `${PAYMENT_METHOD_META[order.paymentMethod].label} 待確認入帳` : '💵 到店付款'))}
+                                        ? (order.paymentMethod === 'platform_paid' ? '💰 已付款（外送平台）' : (THIRD_PARTY_PAY_METHODS.includes(order.paymentMethod) ? `💰 ${PAYMENT_METHOD_META[order.paymentMethod].label} 已收款` : '💰 已付款'))
+                                        : (order.paymentMethod === 'transfer' ? `⚠️ 未付款（後五碼:${order.transferLast5}）` : (THIRD_PARTY_PAY_METHODS.includes(order.paymentMethod) ? `⏳ 待確認入帳（${PAYMENT_METHOD_META[order.paymentMethod].label}）` : '⚠️ 未付款｜到店收款'))}
                                 </span>
-                                ${!isCancelled && order.paymentMethod !== 'platform_paid' ? `<button onclick="window.togglePaymentStatus('${order.id}', '${order.paymentStatus || 'unpaid'}')" class="px-2 py-1 rounded bg-emerald-600 text-white font-bold">${isPaid ? '取消收款' : '✓ 標記已收款'}</button>` : ''}
+                                ${!isCancelled && order.paymentMethod !== 'platform_paid' ? `<button onclick="window.togglePaymentStatus('${order.id}', '${order.paymentStatus || 'unpaid'}')" class="px-3 py-1.5 rounded-xl ${isPaid ? 'bg-white/20 hover:bg-white/30 text-white' : 'bg-wine-900 hover:bg-wine-950 text-cream-50'} ${isKitchenLargeMode ? 'text-sm' : 'text-xs'} font-black shrink-0 transition">${isPaid ? '改回未付' : '✓ 確認收款'}</button>` : ''}
                             </div>
-                            <div class="bg-cream-100 rounded-xl p-3 mb-3 ${isKitchenLargeMode ? 'text-sm' : 'text-xs'} space-y-1.5 border border-cream-200">
+                            <div class="bg-cream-100 rounded-xl p-3 mb-3 ${isKitchenLargeMode ? 'text-base' : 'text-xs'} space-y-1.5 border border-cream-200">
                                 <div class="flex justify-between items-center"><span>取餐人：</span><strong class="${isKitchenLargeMode ? 'text-base' : ''}">${order.customerName} (${order.diningType}${order.tableNumber ? ' ' + order.tableNumber : ''})</strong></div>
                                 ${order.customerPhone ? `<div class="flex justify-between"><span>電話：</span><a href="tel:${order.customerPhone}" class="text-sky-700 underline font-bold">${order.customerPhone}</a></div>` : ''}
                                 ${order.deliveryAddress ? `<div class="pt-1 border-t border-cream-300 text-amber-900"><span>📍 外送地址：</span><strong>${order.deliveryAddress}</strong>${order.deliveryFee ? ` (含運費 $${order.deliveryFee})` : ''}</div>` : ''}
@@ -4187,8 +4187,8 @@
                         </div>
                         <div class="pt-3 border-t border-wine-800/15 space-y-2.5">
                             <div class="flex justify-between items-center">
-                                <span class="text-xs text-stone-500">總金額</span>
-                                <span class="font-serif text-xl font-black text-wine-800">$${order.totalPrice}</span>
+                                <span class="${isKitchenLargeMode ? 'text-sm' : 'text-xs'} text-stone-500">總金額</span>
+                                <span class="font-serif ${isKitchenLargeMode ? 'text-2xl sm:text-3xl' : 'text-xl'} font-black text-wine-800">$${order.totalPrice}</span>
                             </div>
                             ${order.diningType === '外送' && !isCancelled && order.courierStatus !== 'dispatched' ? `<button onclick="window.dispatchCourierForOrder('${order.id}')" class="w-full py-2 rounded-xl bg-orange-500 hover:bg-orange-600 text-white text-xs font-bold shadow-xs transition">📣 一鍵派車</button>` : ''}
                             ${isPending ? `<div class="grid grid-cols-3 gap-2"><button onclick="openCancelOrderModal('${order.id}', '${order.orderNumber}')" class="py-2 rounded-xl bg-rose-100 text-rose-800 text-xs font-bold">✕ 取消</button><button onclick="window.updateOrderStatus('${order.id}', 'preparing')" class="col-span-2 py-2 rounded-xl bg-amber-500 text-wine-950 text-xs font-bold">接單開始製作</button></div>`
