@@ -474,7 +474,7 @@
                         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-wine-800/15">
                             <div>
                                 <h3 class="font-serif text-lg font-bold text-wine-900">🖨️ 櫃檯平板出單機與自動收據列印設定</h3>
-                                <p class="text-xs text-stone-500 mt-0.5">同時支援「單台 Android 平板自助出單」與「iPad 點餐 ＋ 舊安卓手機雲端自動出單中繼站」</p>
+                                <p class="text-xs text-stone-500 mt-0.5">採用中文點陣圖渲染，支援 80mm / 58mm 出單機與 RawBT 列印服務（繁體中文零亂碼）</p>
                             </div>
                             <button type="button" onclick="testReceiptPrintSample()" class="px-3.5 py-2 rounded-xl bg-wine-800 hover:bg-wine-900 text-cream-50 text-xs font-bold shadow-xs transition self-start whitespace-nowrap">
                                 🧪 測試列印一張收據
@@ -511,10 +511,10 @@
 
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
                             <div class="p-3.5 rounded-2xl bg-cream-100/80 border border-cream-300 space-y-1">
-                                <label class="block font-bold text-wine-950">出單機連線方式</label>
+                                <label class="block font-bold text-wine-950">出單機列印引擎</label>
                                 <select id="cfg-printer-mode" onchange="markOwnerHasUnsavedChanges()" class="w-full px-3 py-1.5 rounded-lg bg-white border border-cream-300 font-medium text-wine-950">
-                                    <option value="rawbt">Android 裝置 + RawBT App (全自動無聲吐紙，推薦)</option>
-                                    <option value="browser">標準網頁列印 (iPad AirPrint / 電腦 USB / Wi-Fi)</option>
+                                    <option value="bitmap">中文點陣圖列印 (RawBT 列印服務 / AirPrint / USB，繁體中文零亂碼，推薦)</option>
+                                    <option value="rawbt_escpos">RawBT 傳統純文字指令 (僅限已內建 Big5 字集之出單機)</option>
                                 </select>
                             </div>
 
@@ -896,7 +896,7 @@
                 </div>
 
                 <div class="pt-8 flex flex-col sm:flex-row items-center justify-between text-xs text-cream-200/50 gap-4">
-                    <p>© 2026 <span id="copyright-store-name">昕悅早午餐 Xin Yue Brunch</span>. All Rights Reserved. <span class="ml-1.5 px-2 py-0.5 rounded bg-wine-900 text-gold-400/80 font-mono text-[10px]">v3.0.0</span></p>
+                    <p>© 2026 <span id="copyright-store-name">昕悅早午餐 Xin Yue Brunch</span>. All Rights Reserved. <span class="ml-1.5 px-2 py-0.5 rounded bg-wine-900 text-gold-400/80 font-mono text-[10px]">v3.3.0</span></p>
                     <div class="flex items-center gap-4">
                         <span class="tracking-widest text-gold-400/70">FRESH / BRUNCH / GOOD MOOD ♡</span>
                         <button onclick="openOwnerLoginModal()" class="px-3 py-1 rounded-full bg-wine-900/80 hover:bg-wine-800 text-cream-200/70 hover:text-gold-400 border border-wine-700/60 transition flex items-center gap-1">
@@ -2082,7 +2082,7 @@
             taxId: '',
             invoicePrefix: 'XY',
             autoPrintReceipt: false,
-            printerMode: 'rawbt',
+            printerMode: 'bitmap',
             printerPaper: '80mm',
             printTiming: 'dinein_immediate_takeout_confirm'
         };
@@ -2742,7 +2742,7 @@
                 forceClosedToday: !!document.getElementById('cfg-force-closed-today')?.checked,
                 ownerPasscodeHash: window.currentOwnerPasscodeHash || window.storeProfileState.ownerPasscodeHash || '',
                 autoPrintReceipt: !!document.getElementById('cfg-auto-print-receipt')?.checked,
-                printerMode: document.getElementById('cfg-printer-mode')?.value || 'rawbt',
+                printerMode: document.getElementById('cfg-printer-mode')?.value || 'bitmap',
                 printerPaper: document.getElementById('cfg-printer-paper')?.value || '80mm',
                 printTiming: document.getElementById('cfg-print-timing')?.value || 'dinein_immediate_takeout_confirm'
             });
@@ -2831,12 +2831,20 @@
             [0, 1, 2, 3, 4, 5, 6].forEach(d => setChk(`cfg-closed-day-${d}`, days.includes(d)));
             setChk('cfg-auto-print-receipt', p.autoPrintReceipt);
             setChk('cfg-device-cloud-relay', localStorage.getItem('xinyue_device_cloud_relay') === '1');
-            setVal('cfg-printer-mode', p.printerMode || 'rawbt');
+            setVal('cfg-printer-mode', normalizePrinterMode(p.printerMode));
             setVal('cfg-printer-paper', p.printerPaper || '80mm');
             setVal('cfg-print-timing', p.printTiming || 'dinein_immediate_takeout_confirm');
             updatePasscodeRoleUi();
             updateCloudRelayBadgeUi();
         }
+
+        function normalizePrinterMode(raw) {
+            const v = String(raw || '').trim();
+            if (v === 'rawbt_escpos') return 'rawbt_escpos';
+            if (v === 'rawbt') return 'rawbt_escpos';
+            return 'bitmap';
+        }
+        window.normalizePrinterMode = normalizePrinterMode;
 
         function updateCloudRelayBadgeUi() {
             const badge = document.getElementById('cloud-relay-active-badge');
@@ -2995,8 +3003,8 @@
 
         window.printOrderReceipt = function(order, isSilentAuto = false) {
             if (!order) return;
-            const mode = (window.storeProfileState?.printerMode) || 'rawbt';
-            if (mode === 'rawbt') {
+            const mode = normalizePrinterMode(window.storeProfileState?.printerMode);
+            if (mode === 'rawbt_escpos') {
                 try {
                     const text = buildPlainReceiptText(order);
                     const encoded = encodeURIComponent(text);
@@ -4731,6 +4739,26 @@
             if ('serviceWorker' in navigator) {
                 navigator.serviceWorker.register('sw.js').catch(() => {});
             }
+            try {
+                const baseUrl = window.location.href.split('?')[0];
+                const logoChar = (window.storeProfileState?.storeName || '昕').charAt(0);
+                const svgRaw = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><rect width="512" height="512" rx="110" fill="#540e15"/><rect x="28" y="28" width="456" height="456" rx="88" fill="none" stroke="#d4af37" stroke-width="12"/><text x="256" y="320" font-size="220" font-family="sans-serif" font-weight="bold" fill="#fcfaf7" text-anchor="middle">${logoChar}</text></svg>`;
+                const iconSvg = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svgRaw)}`;
+                const manifestObj = {
+                    name: `${window.storeProfileState?.storeName || '昕悅早午餐'} - 接單管理 App`,
+                    short_name: (window.storeProfileState?.storeName || '昕悅接單').slice(0, 8),
+                    start_url: `${baseUrl}?mode=owner`,
+                    scope: './',
+                    display: 'standalone',
+                    background_color: '#1f0508',
+                    theme_color: '#33060a',
+                    lang: 'zh-TW',
+                    icons: [{ src: iconSvg, sizes: '512x512', type: 'image/svg+xml' }]
+                };
+                const blob = new Blob([new TextEncoder().encode(JSON.stringify(manifestObj))], { type: 'application/manifest+json;charset=utf-8' });
+                const manifestLink = document.getElementById('pwa-manifest-link');
+                if (manifestLink) manifestLink.href = URL.createObjectURL(blob);
+            } catch (e) {}
             const params = new URLSearchParams(window.location.search);
             if (params.get('mode') === 'owner') {
                 setTimeout(() => {
