@@ -4633,6 +4633,7 @@
         window.refreshCustomerOrdersUI = function() {
             const orders = window.myLocalOrders || [];
             const badge = document.getElementById('my-order-badge');
+            const tabsContainer = document.getElementById('customer-order-tabs');
             const detailContainer = document.getElementById('customer-order-detail');
             if (!badge || !detailContainer) return;
 
@@ -4641,8 +4642,21 @@
                 badge.classList.remove('hidden');
             } else {
                 badge.classList.add('hidden');
+                if (tabsContainer) tabsContainer.classList.add('hidden');
                 detailContainer.innerHTML = `<div class="text-center py-8 text-xs text-stone-500">目前還沒有點餐紀錄喔，快去挑選喜愛的餐點吧！</div>`;
                 return;
+            }
+
+            if (tabsContainer) {
+                if (orders.length > 1) {
+                    tabsContainer.classList.remove('hidden');
+                    tabsContainer.innerHTML = orders.map(o => {
+                        const isSel = o.id === (window.selectedCustomerOrderId || orders[0].id);
+                        return `<button onclick="selectCustomerOrder('${o.id}')" class="px-3 py-1 rounded-full text-xs font-bold whitespace-nowrap transition ${isSel ? 'bg-wine-800 text-cream-50' : 'bg-cream-100 text-stone-600'}">#${o.orderNumber} (${o.timeString || ''})</button>`;
+                    }).join('');
+                } else {
+                    tabsContainer.classList.add('hidden');
+                }
             }
 
             const target = orders.find(o => o.id === window.selectedCustomerOrderId) || orders[0];
