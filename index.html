@@ -3361,7 +3361,13 @@
 
             if (storeEl) storeEl.textContent = window.storeProfileState?.storeName || '昕悅早午餐';
             if (tableEl) tableEl.textContent = label || '1號桌';
-            if (imgEl) imgEl.src = qrApiUrl;
+            if (imgEl) {
+                imgEl.onerror = function () {
+                    const fallback = `https://quickchart.io/qr?size=240&text=${encodeURIComponent(targetUrl)}`;
+                    if (this.src !== fallback) this.src = fallback;
+                };
+                imgEl.src = qrApiUrl;
+            }
             if (urlEl) urlEl.textContent = targetUrl;
         }
 
