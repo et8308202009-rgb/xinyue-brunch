@@ -54,6 +54,10 @@
         }
     </script>
     <style>
+        html, body {
+            max-width: 100%;
+            overflow-x: hidden;
+        }
         body {
             background-color: #fbf7f2;
             background-image:
@@ -400,6 +404,25 @@
                                 <label class="block text-xs font-bold text-wine-900 mb-1">店舖地址</label>
                                 <input type="text" id="cfg-store-address" oninput="markOwnerHasUnsavedChanges()" class="w-full px-3.5 py-2 rounded-xl bg-cream-100 border border-cream-300">
                             </div>
+                            <div class="md:col-span-2 p-4 rounded-2xl bg-emerald-50/60 border border-emerald-200 space-y-3">
+                                <div class="flex items-center justify-between">
+                                    <span class="text-xs font-bold text-wine-900">💬 官方社群帳號（有填才顯示於前台，留空自動隱藏）</span>
+                                </div>
+                                <div class="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs">
+                                    <div>
+                                        <label class="block font-bold text-[#06C755] mb-1">LINE 官方帳號 ID 或連結</label>
+                                        <input type="text" id="cfg-line-url" oninput="markOwnerHasUnsavedChanges()" placeholder="例如：@xinyue 或 https://line.me/..." class="w-full px-3 py-2 rounded-xl bg-white border border-emerald-200 font-mono">
+                                    </div>
+                                    <div>
+                                        <label class="block font-bold text-[#1877F2] mb-1">Facebook 粉絲專頁</label>
+                                        <input type="text" id="cfg-fb-url" oninput="markOwnerHasUnsavedChanges()" placeholder="https://www.facebook.com/..." class="w-full px-3 py-2 rounded-xl bg-white border border-blue-200 font-mono">
+                                    </div>
+                                    <div>
+                                        <label class="block font-bold text-[#E1306C] mb-1">Instagram 帳號或連結</label>
+                                        <input type="text" id="cfg-ig-url" oninput="markOwnerHasUnsavedChanges()" placeholder="例如：@xinyue_brunch" class="w-full px-3 py-2 rounded-xl bg-white border border-pink-200 font-mono">
+                                    </div>
+                                </div>
+                            </div>
                             <div class="md:col-span-2">
                                 <label class="block text-xs font-bold text-wine-900 mb-1">⭐ Google 評論專屬連結（選填，留空則自動用店名＋地址搜尋地圖）</label>
                                 <input type="url" id="cfg-google-review-url" oninput="markOwnerHasUnsavedChanges()" placeholder="https://search.google.com/local/writereview?placeid=..." class="w-full px-3.5 py-2 rounded-xl bg-cream-100 border border-cream-300 font-mono text-xs">
@@ -670,7 +693,7 @@
                 <button type="button" onclick="discardAllOwnerChanges()" class="px-4 py-2 rounded-xl bg-wine-800 hover:bg-wine-700 text-cream-100 border border-cream-200/30 text-xs font-bold transition">
                     ↺ 放棄修改
                 </button>
-                <button type="button" onclick="commitAllOwnerChanges()" class="px-5 py-2 rounded-xl bg-gradient-to-r from-gold-500 to-gold-400 hover:from-gold-400 hover:to-gold-300 text-wine-950 text-xs font-black shadow-md transition">
+                <button type="button" id="btn-commit-owner-changes" onclick="commitAllOwnerChanges()" class="px-5 py-2 rounded-xl bg-gradient-to-r from-gold-500 to-gold-400 hover:from-gold-400 hover:to-gold-300 text-wine-950 text-xs font-black shadow-md transition">
                     💾 儲存所有修改
                 </button>
             </div>
@@ -719,6 +742,19 @@
                             <a id="hero-phone-btn" href="tel:035262699" class="w-full sm:w-auto px-7 py-3.5 rounded-full bg-wine-900/70 hover:bg-wine-800 text-cream-50 border border-gold-400/50 text-sm tracking-wider transition flex items-center justify-center gap-2">
                                 <span class="text-gold-400">📞</span>
                                 <span id="hero-phone-btn-text">來電預訂 03-5262699</span>
+                            </a>
+                        </div>
+
+                        <!-- 官方社群快速按鈕（有填才顯示） -->
+                        <div id="hero-social-bar" class="hidden pt-1 flex flex-wrap items-center justify-center lg:justify-start gap-2.5">
+                            <a id="hero-line-btn" href="#" target="_blank" rel="noopener noreferrer" onclick="window.handleDirectSocialJump('line')" class="hidden inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[#06C755] hover:brightness-110 text-white text-xs font-bold shadow-md transition whitespace-nowrap">
+                                <span>💬</span><span>LINE 官方帳號</span>
+                            </a>
+                            <a id="hero-fb-btn" href="#" target="_blank" rel="noopener noreferrer" onclick="window.handleDirectSocialJump('fb')" class="hidden inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[#1877F2] hover:brightness-110 text-white text-xs font-bold shadow-md transition whitespace-nowrap">
+                                <span>👍</span><span>Facebook</span>
+                            </a>
+                            <a id="hero-ig-btn" href="#" target="_blank" rel="noopener noreferrer" onclick="window.handleDirectSocialJump('ig')" class="hidden inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-tr from-[#f09433] via-[#dc2743] to-[#bc1888] hover:brightness-110 text-white text-xs font-bold shadow-md transition whitespace-nowrap">
+                                <span>📸</span><span>Instagram</span>
                             </a>
                         </div>
                     </div>
@@ -860,6 +896,17 @@
                             新鮮食材．用心製作，每一餐都值得期待。<br>
                             吃飽，才有力氣面對更好的自己 ♡ 歡迎來店享用！
                         </p>
+                        <div id="footer-social-bar" class="hidden pt-1 flex flex-wrap items-center gap-2">
+                            <a id="footer-line-btn" href="#" target="_blank" rel="noopener noreferrer" onclick="window.handleDirectSocialJump('line')" class="hidden inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-[#06C755] hover:brightness-110 text-white text-xs font-bold shadow-xs transition whitespace-nowrap">
+                                <span>💬</span><span>LINE</span>
+                            </a>
+                            <a id="footer-fb-btn" href="#" target="_blank" rel="noopener noreferrer" onclick="window.handleDirectSocialJump('fb')" class="hidden inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-[#1877F2] hover:brightness-110 text-white text-xs font-bold shadow-xs transition whitespace-nowrap">
+                                <span>👍</span><span>Facebook</span>
+                            </a>
+                            <a id="footer-ig-btn" href="#" target="_blank" rel="noopener noreferrer" onclick="window.handleDirectSocialJump('ig')" class="hidden inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-gradient-to-tr from-[#f09433] via-[#dc2743] to-[#bc1888] hover:brightness-110 text-white text-xs font-bold shadow-xs transition whitespace-nowrap">
+                                <span>📸</span><span>IG</span>
+                            </a>
+                        </div>
                     </div>
 
                     <div class="md:col-span-4 space-y-3.5 text-sm">
@@ -896,7 +943,7 @@
                 </div>
 
                 <div class="pt-8 flex flex-col sm:flex-row items-center justify-between text-xs text-cream-200/50 gap-4">
-                    <p>© 2026 <span id="copyright-store-name">昕悅早午餐 Xin Yue Brunch</span>. All Rights Reserved. <span class="ml-1.5 px-2 py-0.5 rounded bg-wine-900 text-gold-400/80 font-mono text-[10px]">v3.3.0</span></p>
+                    <p>© 2026 <span id="copyright-store-name">昕悅早午餐 Xin Yue Brunch</span>. All Rights Reserved. <span class="ml-1.5 px-2 py-0.5 rounded bg-wine-900 text-gold-400/80 font-mono text-[10px]">v3.3.6</span></p>
                     <div class="flex items-center gap-4">
                         <span class="tracking-widest text-gold-400/70">FRESH / BRUNCH / GOOD MOOD ♡</span>
                         <button onclick="openOwnerLoginModal()" class="px-3 py-1 rounded-full bg-wine-900/80 hover:bg-wine-800 text-cream-200/70 hover:text-gold-400 border border-wine-700/60 transition flex items-center gap-1">
@@ -2023,6 +2070,9 @@
             forceClosedToday: false,
             phone: '03-5262699',
             address: '新竹市西門街266號',
+            lineUrl: '',
+            fbUrl: '',
+            igUrl: '',
             googleReviewUrl: '',
             reviewTemplatesText: '',
             bankName: '822 中國信託 (昕悅早午餐)',
@@ -2453,6 +2503,41 @@
             renderOwnerStockManager();
         };
 
+        // ================= 官方社群網址智慧解析 =================
+        function resolveSocialHref(platform, rawInput) {
+            const raw = (rawInput || '').trim();
+            if (!raw) return '';
+            if (/^https?:\/\//i.test(raw)) return raw;
+            if (platform === 'line') {
+                const cleanId = raw.startsWith('@') ? raw.replace(/^@/, '') : raw;
+                return `https://line.me/R/ti/p/@${cleanId}`;
+            }
+            if (platform === 'fb') {
+                if (/^[A-Za-z0-9._-]+$/.test(raw)) return `https://www.facebook.com/${raw.replace(/^@/, '')}`;
+                return '';
+            }
+            if (platform === 'ig') {
+                return `https://www.instagram.com/${raw.replace(/^@/, '')}`;
+            }
+            return '';
+        }
+        window.resolveSocialHref = resolveSocialHref;
+
+        window.handleDirectSocialJump = function(platform) {
+            const p = window.storeProfileState || {};
+            const rawMap = { line: p.lineUrl, fb: p.fbUrl, ig: p.igUrl };
+            const href = resolveSocialHref(platform, rawMap[platform]);
+            if (!href) return;
+            try {
+                const ta = document.createElement('textarea');
+                ta.value = href;
+                document.body.appendChild(ta);
+                ta.select();
+                document.execCommand('copy');
+                document.body.removeChild(ta);
+            } catch (e) {}
+        };
+
         window.applyDynamicStoreProfile = function(data) {
             window.storeProfileState = Object.assign({}, window.storeProfileState, data || {});
             const p = window.storeProfileState;
@@ -2478,6 +2563,34 @@
             ['card-store-address', 'footer-store-address'].forEach(id => { const el = document.getElementById(id); if (el) el.textContent = p.address; });
             const mapHref = `https://maps.google.com/?q=${encodeURIComponent(p.address)}`;
             ['card-address-link', 'footer-map-link'].forEach(id => { const el = document.getElementById(id); if (el) el.href = mapHref; });
+
+            // 同步 LINE / Facebook / Instagram 按鈕
+            const lineHref = resolveSocialHref('line', p.lineUrl);
+            const fbHref = resolveSocialHref('fb', p.fbUrl);
+            const igHref = resolveSocialHref('ig', p.igUrl);
+            const hasAnySocial = Boolean(lineHref || fbHref || igHref);
+
+            const updateSocialLinkBtn = (btnId, href) => {
+                const btn = document.getElementById(btnId);
+                if (!btn) return;
+                if (href) {
+                    btn.href = href;
+                    btn.classList.remove('hidden');
+                } else {
+                    btn.classList.add('hidden');
+                }
+            };
+            updateSocialLinkBtn('hero-line-btn', lineHref);
+            updateSocialLinkBtn('hero-fb-btn', fbHref);
+            updateSocialLinkBtn('hero-ig-btn', igHref);
+            updateSocialLinkBtn('footer-line-btn', lineHref);
+            updateSocialLinkBtn('footer-fb-btn', fbHref);
+            updateSocialLinkBtn('footer-ig-btn', igHref);
+
+            const heroSocialBar = document.getElementById('hero-social-bar');
+            const footerSocialBar = document.getElementById('footer-social-bar');
+            if (heroSocialBar) heroSocialBar.classList.toggle('hidden', !hasAnySocial);
+            if (footerSocialBar) footerSocialBar.classList.toggle('hidden', !hasAnySocial);
 
             const bankLabel = document.getElementById('store-bank-label');
             const bankAcc = document.getElementById('store-bank-account');
@@ -2680,6 +2793,11 @@
         };
 
         window.commitAllOwnerChanges = async function() {
+            const saveBtn = document.getElementById('btn-commit-owner-changes');
+            if (saveBtn) {
+                saveBtn.disabled = true;
+                saveBtn.textContent = '⏳ 儲存中...';
+            }
             const selectedWeekdays = [0, 1, 2, 3, 4, 5, 6].filter(d => document.getElementById(`cfg-closed-day-${d}`)?.checked);
             const updatedProfile = Object.assign({}, window.storeProfileState, {
                 storeName: document.getElementById('cfg-store-name')?.value.trim() || '昕悅早午餐',
@@ -2687,6 +2805,9 @@
                 hours: document.getElementById('cfg-store-hours')?.value.trim() || '05:30 - 12:00',
                 phone: document.getElementById('cfg-store-phone')?.value.trim() || '03-5262699',
                 address: document.getElementById('cfg-store-address')?.value.trim() || '新竹市西門街266號',
+                lineUrl: document.getElementById('cfg-line-url')?.value.trim() || '',
+                fbUrl: document.getElementById('cfg-fb-url')?.value.trim() || '',
+                igUrl: document.getElementById('cfg-ig-url')?.value.trim() || '',
                 googleReviewUrl: document.getElementById('cfg-google-review-url')?.value.trim() || '',
                 reviewTemplatesText: document.getElementById('cfg-review-templates')?.value || '',
                 bankName: document.getElementById('cfg-bank-name')?.value.trim() || '',
@@ -2747,17 +2868,33 @@
                 printTiming: document.getElementById('cfg-print-timing')?.value || 'dinein_immediate_takeout_confirm'
             });
 
+            // 1. 立即套用到畫面
             window.applyDynamicStoreProfile(updatedProfile);
-            try {
-                localStorage.setItem('xinyue_custom_menu_data', JSON.stringify(menuData));
-                localStorage.setItem('xinyue_store_profile', JSON.stringify(updatedProfile));
-            } catch (e) {}
+            try { if (typeof updateTableQrPreview === 'function') updateTableQrPreview(); } catch (e) {}
+            try { renderCategoryTabs(); } catch (e) {}
+            try { renderMenu(document.getElementById('menu-search')?.value.trim() || ''); } catch (e) {}
 
-            if (window.saveDynamicMenuToCloud) await window.saveDynamicMenuToCloud(menuData);
-            if (window.saveDynamicStoreProfileToCloud) await window.saveDynamicStoreProfileToCloud(updatedProfile);
+            // 2. 本機快取（各自獨立，避免容量上限阻斷流程）
+            try { localStorage.setItem('xinyue_custom_menu_data', JSON.stringify(menuData)); } catch (e) {}
+            try { localStorage.setItem('xinyue_store_profile', JSON.stringify(updatedProfile)); } catch (e) {}
 
+            // 3. 解除未儲存提示
             captureOwnerSavedSnapshot();
-            showToast('💾 所有設定與菜單變更已正式儲存並同步！');
+            showToast('💾 所有設定、社群連結與菜單變更已儲存！');
+
+            // 4. 背景同步雲端（失敗不影響已儲存結果）
+            try {
+                if (window.saveDynamicStoreProfileToCloud) await window.saveDynamicStoreProfileToCloud(updatedProfile);
+                if (window.saveDynamicMenuToCloud) await window.saveDynamicMenuToCloud(menuData);
+            } catch (cloudErr) {
+                console.warn('雲端同步提醒:', cloudErr);
+                showToast('⚠️ 已存在本機，但雲端同步較慢，稍後會自動補上');
+            }
+
+            if (saveBtn) {
+                saveBtn.disabled = false;
+                saveBtn.textContent = '💾 儲存所有修改';
+            }
         };
 
         function populateStoreSettingsForm() {
@@ -2770,6 +2907,9 @@
             setVal('cfg-store-hours', p.hours);
             setVal('cfg-store-phone', p.phone);
             setVal('cfg-store-address', p.address);
+            setVal('cfg-line-url', p.lineUrl || '');
+            setVal('cfg-fb-url', p.fbUrl || '');
+            setVal('cfg-ig-url', p.igUrl || '');
             setVal('cfg-google-review-url', p.googleReviewUrl || '');
             setVal('cfg-review-templates', p.reviewTemplatesText || '');
             setVal('cfg-bank-name', p.bankName);
