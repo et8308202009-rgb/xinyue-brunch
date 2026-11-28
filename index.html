@@ -980,7 +980,7 @@
                 </div>
 
                 <div class="pt-8 flex flex-col sm:flex-row items-center justify-between text-xs text-cream-200/50 gap-4">
-                    <p>© 2026 <span id="copyright-store-name">昕悅早午餐 Xin Yue Brunch</span>. All Rights Reserved. <span class="ml-1.5 px-2 py-0.5 rounded bg-wine-900 text-gold-400/80 font-mono text-[10px]">v3.4.2</span></p>
+                    <p>© 2026 <span id="copyright-store-name">昕悅早午餐 Xin Yue Brunch</span>. All Rights Reserved. <span class="ml-1.5 px-2 py-0.5 rounded bg-wine-900 text-gold-400/80 font-mono text-[10px]">v3.4.3</span></p>
                     <div class="flex items-center gap-4">
                         <span class="tracking-widest text-gold-400/70">FRESH / BRUNCH / GOOD MOOD ♡</span>
                         <button onclick="openOwnerLoginModal()" class="px-3 py-1 rounded-full bg-wine-900/80 hover:bg-wine-800 text-cream-200/70 hover:text-gold-400 border border-wine-700/60 transition flex items-center gap-1">
@@ -2746,6 +2746,13 @@
             if (enEl) enEl.textContent = p.storeEn;
             const logoChar = (p.storeName || '昕').charAt(0);
             ['brand-logo-char', 'footer-logo-char'].forEach(id => { const el = document.getElementById(id); if (el) el.textContent = logoChar; });
+
+            // 瀏覽器分頁名稱／手機加入主畫面名稱，跟隨後台「店家品牌名稱」設定
+            const titleName = (p.storeName || '昕悅早午餐').trim();
+            const titleEn = (p.storeEn || '').trim();
+            document.title = `${titleName}${titleEn ? ' ' + titleEn : ''} | 新鮮食材．用心製作`;
+            const homeScreenTitle = document.querySelector('meta[name="apple-mobile-web-app-title"]');
+            if (homeScreenTitle) homeScreenTitle.setAttribute('content', `${titleName} 接單`);
 
             ['card-store-hours', 'footer-store-hours'].forEach(id => { const el = document.getElementById(id); if (el) el.textContent = p.hours; });
             ['card-closed-days-text', 'footer-closed-days-text'].forEach(id => { const el = document.getElementById(id); if (el) el.textContent = p.closedDaysText || '每週一公休'; });
