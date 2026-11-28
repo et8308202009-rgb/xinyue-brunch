@@ -5324,7 +5324,7 @@
                 if (!manifestLink) return;
                 const p = window.storeProfileState || {};
                 const storeName = (p.storeName || '昕悅早午餐').trim();
-                const baseUrl = window.location.href.split('?')[0];
+                const baseUrl = window.location.href.split('?')[0].replace(/\/+$/, '');
                 const logoChar = storeName.charAt(0) || '昕';
 
                 const svgRaw = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><rect width="512" height="512" rx="110" fill="#540e15"/><rect x="28" y="28" width="456" height="456" rx="88" fill="none" stroke="#d4af37" stroke-width="12"/><text x="256" y="320" font-size="220" font-family="sans-serif" font-weight="bold" fill="#fcfaf7" text-anchor="middle">${logoChar}</text></svg>`;
