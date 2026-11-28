@@ -2749,7 +2749,7 @@
 
             // 瀏覽器分頁名稱／手機加入主畫面名稱，跟隨後台「店家品牌名稱」設定
             const titleName = (p.storeName || '昕悅早午餐').trim();
-            const titleEn = (p.storeEn || '').trim();
+            const titleEn = (p.storeEn || '').replace(/\s+/g, ' ').trim();
             document.title = `${titleName}${titleEn ? ' ' + titleEn : ''} | 新鮮食材．用心製作`;
             const homeScreenTitle = document.querySelector('meta[name="apple-mobile-web-app-title"]');
             if (homeScreenTitle) homeScreenTitle.setAttribute('content', `${titleName} 接單`);
