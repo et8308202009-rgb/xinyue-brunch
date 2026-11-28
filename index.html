@@ -876,7 +876,44 @@
                 </div>
 
                 <div id="category-tabs" class="flex md:flex-wrap items-center gap-2.5 overflow-x-auto md:overflow-visible no-scrollbar pb-4 mb-6"></div>
-                <div id="menu-container" class="space-y-10"></div>
+                <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+                    <div id="menu-container" class="lg:col-span-8 space-y-10"></div>
+
+                    <aside class="hidden lg:block lg:col-span-4 sticky top-24 z-20">
+                        <div class="rounded-3xl bg-[#fffcf7] text-wine-950 border-2 border-gold-400 shadow-2xl overflow-hidden flex flex-col max-h-[calc(100vh-7rem)]">
+                            <div class="px-5 py-4 bg-gradient-to-r from-wine-950 to-wine-800 text-cream-50 flex items-center justify-between border-b border-gold-400/40 shrink-0">
+                                <div class="flex items-center gap-2">
+                                    <span class="text-gold-400 text-lg">🛍️</span>
+                                    <div>
+                                        <h3 class="font-serif text-lg font-bold tracking-wide leading-tight">即時點餐明細</h3>
+                                        <p class="text-[11px] text-cream-200/75">點選左側餐點即時同步</p>
+                                    </div>
+                                </div>
+                                <span id="inline-cart-badge" class="px-3 py-1 rounded-full bg-gold-400 text-wine-950 font-black text-xs shadow-xs">0 份</span>
+                            </div>
+                            <div id="inline-cart-items" class="p-4 space-y-2.5 overflow-y-auto flex-1 min-h-[160px]">
+                                <div class="text-center text-stone-400 py-10">
+                                    <p class="font-serif text-base text-stone-500">尚未點選任何餐點</p>
+                                    <p class="text-xs mt-1">點擊左側「+」即可加入</p>
+                                </div>
+                            </div>
+                            <div class="p-4 bg-cream-100/90 border-t border-cream-300 space-y-3 shrink-0">
+                                <div class="flex items-center justify-between">
+                                    <span class="text-xs font-bold text-stone-600">餐點預估小計</span>
+                                    <span id="inline-cart-total" class="font-serif text-2xl font-black text-wine-800">$0</span>
+                                </div>
+                                <button type="button" onclick="toggleCart()" class="w-full py-3 px-4 rounded-2xl bg-gradient-to-r from-wine-900 to-wine-800 hover:from-wine-800 hover:to-wine-700 text-cream-50 text-sm font-bold shadow-lg border border-gold-400/50 transition flex items-center justify-center gap-2 active:scale-95">
+                                    <span class="text-gold-400">✦</span>
+                                    <span>填寫桌號與送出訂單 →</span>
+                                </button>
+                                <div class="flex items-center justify-between gap-2">
+                                    <button type="button" onclick="clearCart()" class="flex-1 py-1.5 px-2.5 rounded-xl border border-stone-300 text-stone-600 hover:bg-white text-xs font-medium transition">清空全部</button>
+                                    <button type="button" onclick="copyOrderSummary()" class="flex-1 py-1.5 px-2.5 rounded-xl bg-white hover:bg-cream-200 text-wine-900 border border-cream-300 text-xs font-medium transition">📋 複製明細</button>
+                                </div>
+                            </div>
+                        </div>
+                    </aside>
+                </div>
             </div>
         </section>
 
@@ -943,7 +980,7 @@
                 </div>
 
                 <div class="pt-8 flex flex-col sm:flex-row items-center justify-between text-xs text-cream-200/50 gap-4">
-                    <p>© 2026 <span id="copyright-store-name">昕悅早午餐 Xin Yue Brunch</span>. All Rights Reserved. <span class="ml-1.5 px-2 py-0.5 rounded bg-wine-900 text-gold-400/80 font-mono text-[10px]">v3.3.6</span></p>
+                    <p>© 2026 <span id="copyright-store-name">昕悅早午餐 Xin Yue Brunch</span>. All Rights Reserved. <span class="ml-1.5 px-2 py-0.5 rounded bg-wine-900 text-gold-400/80 font-mono text-[10px]">v3.4.1</span></p>
                     <div class="flex items-center gap-4">
                         <span class="tracking-widest text-gold-400/70">FRESH / BRUNCH / GOOD MOOD ♡</span>
                         <button onclick="openOwnerLoginModal()" class="px-3 py-1 rounded-full bg-wine-900/80 hover:bg-wine-800 text-cream-200/70 hover:text-gold-400 border border-wine-700/60 transition flex items-center gap-1">
@@ -1186,6 +1223,44 @@
         </div>
     </div>
 
+    <!-- 💳 手機 NFC 感應刷卡收款快捷視窗 -->
+    <div id="tap-to-pay-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4">
+        <div onclick="closeTapToPayModal()" class="absolute inset-0 bg-wine-950/85 backdrop-blur-xs"></div>
+        <div class="relative w-full max-w-sm rounded-3xl bg-[#fffcf7] text-wine-950 p-6 sm:p-7 border-2 border-sky-400 shadow-2xl space-y-4">
+            <div class="text-center space-y-1.5">
+                <div class="w-14 h-14 rounded-full bg-sky-100 text-sky-700 flex items-center justify-center mx-auto border-2 border-sky-300 text-3xl">💳</div>
+                <span id="ttp-provider-badge" class="inline-block px-3 py-0.5 rounded-full bg-sky-700 text-white text-[11px] font-bold">💙 綠界收款感應 App</span>
+                <h3 class="font-serif text-xl font-black text-wine-900">NFC 手機感應刷卡收款</h3>
+                <p id="ttp-order-info" class="text-xs text-stone-600">訂單 #--- · 現場貴賓</p>
+            </div>
+
+            <div class="p-4 rounded-2xl bg-sky-50 border-2 border-sky-200 text-center space-y-1.5">
+                <span class="text-xs font-bold text-sky-900 block">本次應收刷卡金額（已自動複製）</span>
+                <div id="ttp-amount-display" class="font-serif text-4xl font-black text-wine-900 tracking-tight">$0</div>
+                <button type="button" onclick="copyTapToPayAmount()" class="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-white hover:bg-sky-100 border border-sky-300 text-sky-800 text-[11px] font-bold transition">
+                    <span>📋 重新複製金額</span>
+                </button>
+            </div>
+
+            <div class="p-3 rounded-2xl bg-cream-100 border border-cream-300 text-[11px] text-stone-700 leading-relaxed space-y-1">
+                <div><strong>📱 操作步驟（免買刷卡機）：</strong></div>
+                <div>1. 點下方「<strong>開啟刷卡 App 進行感應</strong>」，系統會自動喚起收款 App（Android 直接開啟）。</div>
+                <div>2. 請客人將信用卡 / Apple Pay / Google Pay 靠在手機背面感應完成扣款。</div>
+                <div>3. 確認扣款成功後，回到此畫面按「<strong>✓ 感應成功，標記已收款</strong>」。</div>
+            </div>
+
+            <div class="space-y-2 pt-1">
+                <button type="button" onclick="launchTapToPayApp()" class="w-full py-3 rounded-xl bg-gradient-to-r from-sky-600 to-indigo-600 hover:from-sky-500 hover:to-indigo-500 text-white text-sm font-black shadow-md transition flex items-center justify-center gap-2">
+                    <span>📲 開啟刷卡 App 進行感應</span>
+                </button>
+                <div class="grid grid-cols-2 gap-2.5">
+                    <button type="button" onclick="closeTapToPayModal()" class="py-2.5 rounded-xl border border-stone-300 text-stone-600 text-xs font-medium hover:bg-stone-100 transition">稍後處理</button>
+                    <button type="button" id="ttp-confirm-paid-btn" onclick="confirmTapToPaySuccess()" class="py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-sm transition">✓ 感應成功，標記已收款</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- 老闆新增菜單類別視窗 -->
     <div id="add-category-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4">
         <div onclick="closeAddCategoryModal()" class="absolute inset-0 bg-wine-950/80 backdrop-blur-xs"></div>
@@ -1347,6 +1422,7 @@
         let currentUser = null;
         let allCloudOrders = [];
         window.soldOutItems = {};
+        window.itemStockLimits = {};
         window.myLocalOrders = [];
         window.selectedCustomerOrderId = null;
         window.systemLicense = { isActive: true, expireDate: '2027-12-31', autoLockOnExpire: true };
@@ -1477,38 +1553,122 @@
             if (!currentUser || !db) return;
             const stockDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'settings', 'soldOutItems');
             onSnapshot(stockDocRef, (docSnap) => {
-                window.soldOutItems = docSnap.exists() ? (docSnap.data().items || {}) : {};
+                if (docSnap.exists()) {
+                    const d = docSnap.data();
+                    window.soldOutItems = d.items || {};
+                    window.itemStockLimits = d.stockLimits || {};
+                } else {
+                    window.soldOutItems = {};
+                    window.itemStockLimits = {};
+                }
                 if (window.onSoldOutItemsUpdated) window.onSoldOutItemsUpdated();
             });
         }
 
+        async function persistStockStateToCloud(updatedSoldOut, updatedLimits) {
+            try {
+                localStorage.setItem('xinyue_sold_out_items', JSON.stringify(updatedSoldOut));
+                localStorage.setItem('xinyue_item_stock_limits', JSON.stringify(updatedLimits || {}));
+            } catch (e) {}
+            if (isFirebaseConfigured && db && currentUser) {
+                await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'settings', 'soldOutItems'), {
+                    items: updatedSoldOut,
+                    stockLimits: updatedLimits || {},
+                    updatedAt: Date.now()
+                });
+            }
+        }
+
+        // 店家設定單品剩餘庫存（留空 = 無限量）
+        window.setItemStockLimit = async function(itemName, rawValue) {
+            const trimmed = String(rawValue ?? '').trim();
+            const updatedSoldOut = Object.assign({}, window.soldOutItems);
+            const updatedLimits = Object.assign({}, window.itemStockLimits);
+
+            if (trimmed === '' || isNaN(Number(trimmed)) || Number(trimmed) < 0) {
+                delete updatedLimits[itemName];
+                window.itemStockLimits = updatedLimits;
+                if (window.onSoldOutItemsUpdated) window.onSoldOutItemsUpdated();
+                await persistStockStateToCloud(updatedSoldOut, updatedLimits);
+                window.showToast(`已取消「${itemName}」限量設定（改為無限量供應）`);
+                return;
+            }
+
+            const qty = Math.floor(Number(trimmed));
+            updatedLimits[itemName] = qty;
+            if (qty === 0) updatedSoldOut[itemName] = true;
+            else delete updatedSoldOut[itemName];
+
+            window.soldOutItems = updatedSoldOut;
+            window.itemStockLimits = updatedLimits;
+            if (window.onSoldOutItemsUpdated) window.onSoldOutItemsUpdated();
+            await persistStockStateToCloud(updatedSoldOut, updatedLimits);
+            window.showToast(qty === 0
+                ? `「${itemName}」庫存設為 0，已自動標記售完`
+                : `📦 已設定「${itemName}」剩餘庫存為 ${qty} 份`);
+        };
+
+        // 客人送出訂單時自動扣減限量庫存
+        window.deductStockForSubmittedOrder = async function(orderItems) {
+            if (!Array.isArray(orderItems) || orderItems.length === 0) return;
+            const limits = window.itemStockLimits || {};
+            if (Object.keys(limits).length === 0) return;
+
+            const updatedLimits = Object.assign({}, limits);
+            const updatedSoldOut = Object.assign({}, window.soldOutItems);
+            let hasAnyChange = false;
+
+            orderItems.forEach(it => {
+                const fullName = it.name || '';
+                const baseName = fullName.split(' (')[0].split(' + 豬排')[0];
+                const targetKey = (updatedLimits[fullName] !== undefined)
+                    ? fullName
+                    : (updatedLimits[baseName] !== undefined ? baseName : null);
+
+                if (targetKey !== null) {
+                    const nextRemain = Math.max(0, Number(updatedLimits[targetKey]) - Number(it.qty || 1));
+                    updatedLimits[targetKey] = nextRemain;
+                    if (nextRemain === 0) updatedSoldOut[targetKey] = true;
+                    hasAnyChange = true;
+                }
+            });
+
+            if (hasAnyChange) {
+                window.itemStockLimits = updatedLimits;
+                window.soldOutItems = updatedSoldOut;
+                if (window.onSoldOutItemsUpdated) window.onSoldOutItemsUpdated();
+                await persistStockStateToCloud(updatedSoldOut, updatedLimits);
+            }
+        };
+
         window.toggleItemSoldOut = async function(itemName) {
             const nextState = !window.soldOutItems[itemName];
             const updatedMap = Object.assign({}, window.soldOutItems);
-            if (nextState) updatedMap[itemName] = true;
-            else delete updatedMap[itemName];
+            const updatedLimits = Object.assign({}, window.itemStockLimits);
+            if (nextState) {
+                updatedMap[itemName] = true;
+                if (updatedLimits[itemName] !== undefined) updatedLimits[itemName] = 0;
+            } else {
+                delete updatedMap[itemName];
+                if (updatedLimits[itemName] === 0) delete updatedLimits[itemName];
+            }
 
             window.soldOutItems = updatedMap;
+            window.itemStockLimits = updatedLimits;
             if (window.onSoldOutItemsUpdated) window.onSoldOutItemsUpdated();
 
-            if (!isFirebaseConfigured || !db || !currentUser) {
-                try { localStorage.setItem('xinyue_sold_out_items', JSON.stringify(updatedMap)); } catch (e) {}
-                window.showToast(nextState ? `已將「${itemName}」設為今日售完` : `已恢復「${itemName}」正常供應`);
-                return;
-            }
             try {
-                await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'settings', 'soldOutItems'), { items: updatedMap, updatedAt: Date.now() });
+                await persistStockStateToCloud(updatedMap, updatedLimits);
                 window.showToast(nextState ? `已將「${itemName}」設為今日售完` : `已恢復「${itemName}」正常供應`);
             } catch (e) { console.error(e); }
         };
 
         window.resetAllSoldOutItems = async function() {
             window.soldOutItems = {};
+            window.itemStockLimits = {};
             if (window.onSoldOutItemsUpdated) window.onSoldOutItemsUpdated();
-            if (isFirebaseConfigured && db && currentUser) {
-                await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'settings', 'soldOutItems'), { items: {}, updatedAt: Date.now() });
-            }
-            window.showToast('所有餐點已恢復正常供應！');
+            await persistStockStateToCloud({}, {});
+            window.showToast('所有餐點已恢復正常供應並清除限量售完狀態！');
         };
 
         function subscribeToRealtimeOrders() {
@@ -1670,6 +1830,7 @@
                 window.myLocalOrders.unshift(mockOrder);
                 window.selectedCustomerOrderId = mockOrder.id;
                 try { localStorage.setItem(SAVED_MOCK_ORDERS_KEY, JSON.stringify(window.myLocalOrders.slice(0, 15))); } catch (e) {}
+                if (window.deductStockForSubmittedOrder) { try { await window.deductStockForSubmittedOrder(orderPayload.items); } catch (e) {} }
                 window.clearCart();
                 window.toggleCart();
                 window.refreshCustomerOrdersUI();
@@ -1694,6 +1855,7 @@
                 window.selectedCustomerOrderId = docRef.id;
                 window.clearCart();
                 window.toggleCart();
+                if (window.deductStockForSubmittedOrder) { try { await window.deductStockForSubmittedOrder(orderPayload.items); } catch (e) {} }
                 window.refreshCustomerOrdersUI();
                 window.openCustomerOrderModal();
                 // 方案 A（單機版）：本機點餐送出時自動觸發出單（記錄已印避免雲端監聽重複）
@@ -1728,12 +1890,12 @@
             }
         };
 
-        window.togglePaymentStatus = async function(orderId, currentPayStatus) {
+        window.togglePaymentStatus = async function(orderId, currentPayStatus, customPaidMethod = null) {
             if (!db || !currentUser) return;
             const nextPay = currentPayStatus === 'paid' ? 'unpaid' : 'paid';
-            await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'orders', orderId), {
-                paymentStatus: nextPay
-            });
+            const updateFields = { paymentStatus: nextPay };
+            if (nextPay === 'paid' && customPaidMethod) updateFields.paymentMethod = customPaidMethod;
+            await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'orders', orderId), updateFields);
             window.showToast(currentPayStatus === 'paid' ? '已改回待收款' : '💰 已確認收到款項！');
             const targetOrder = allCloudOrders.find(o => o.id === orderId);
             if (nextPay === 'paid' && targetOrder && !printedOrderIdsSet.has(orderId) && window.shouldAutoPrintOrder && window.shouldAutoPrintOrder(targetOrder, 'paid')) {
@@ -2131,6 +2293,9 @@
             newebpayHashIv: '',
             taxId: '',
             invoicePrefix: 'XY',
+            tapToPayEnabled: false,
+            tapToPayProvider: 'ecpay',
+            tapToPayCustomScheme: '',
             autoPrintReceipt: false,
             printerMode: 'bitmap',
             printerPaper: '80mm',
@@ -2240,6 +2405,37 @@
                             <div>
                                 <h3 class="font-serif text-lg font-bold text-wine-900">💳 台灣 9 大行動支付與金流 API 設定</h3>
                                 <p class="text-xs text-stone-500 mt-0.5">此為「加值方案」，由創峰行銷於總部控制中心開通後才會生效（店家無法自行開啟）</p>
+                            </div>
+                        </div>
+
+                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 rounded-2xl bg-sky-50/90 border-2 border-sky-300">
+                            <div>
+                                <div class="flex items-center gap-2 flex-wrap">
+                                    <span class="font-serif font-bold text-wine-900">💳 手機感應刷卡（免租刷卡機）</span>
+                                    <span class="px-2 py-0.5 rounded-full bg-sky-700 text-white text-[10px] font-black">SoftPOS</span>
+                                </div>
+                                <p class="text-[11px] text-stone-600 mt-1">開啟後，每張「未付款」訂單都會出現「💳 感應刷卡」按鈕：自動複製金額並喚起收款 App，感應完成一鍵標記已收款。</p>
+                            </div>
+                            <label class="inline-flex items-center gap-2 px-3 py-2 rounded-xl bg-white border border-sky-300 cursor-pointer shrink-0">
+                                <span class="text-xs font-black text-sky-950">啟用</span>
+                                <input type="checkbox" id="cfg-tap-to-pay-enabled" onchange="markOwnerHasUnsavedChanges()" class="w-5 h-5 accent-sky-600 cursor-pointer">
+                            </label>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs">
+                            <div>
+                                <label class="block font-bold text-wine-900 mb-1">預設收款感應 App</label>
+                                <select id="cfg-tap-to-pay-provider" onchange="markOwnerHasUnsavedChanges()" class="w-full px-3 py-2 rounded-xl bg-cream-100 border border-cream-300 font-bold text-wine-950">
+                                    <option value="ecpay">💙 綠界收款感應 App (ECPay SoftPOS)</option>
+                                    <option value="newebpay">🟣 藍新金流收款 App (NewebPay SoftPOS)</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block font-bold text-wine-900 mb-1">自訂 App 喚起網址（選填）</label>
+                                <input type="text" id="cfg-tap-to-pay-scheme" oninput="markOwnerHasUnsavedChanges()" placeholder="例如：ecpay://（留空用內建喚起）" class="w-full px-3 py-2 rounded-xl bg-cream-100 border border-cream-300 font-mono text-[11px]">
+                            </div>
+                            <div class="flex items-end">
+                                <button type="button" onclick="testTapToPayQuickCall()" class="w-full py-2 rounded-xl bg-sky-600 hover:bg-sky-700 text-white font-bold shadow-xs transition">🧪 測試呼叫刷卡 App</button>
                             </div>
                         </div>
 
@@ -2654,7 +2850,9 @@
             easywallet: { label: '💠 悠遊付', title: '💠 悠遊付 EasyWallet' },
             opay: { label: '🟡 歐付寶 O\'Pay', title: '🟡 歐付寶 O\'Pay 第三方支付' },
             ecpay: { label: '💙 綠界金流', title: '💙 綠界 ECPay 線上刷卡 / 行動支付' },
-            newebpay: { label: '🟣 藍新金流', title: '🟣 藍新 NewebPay 線上支付' }
+            newebpay: { label: '🟣 藍新金流', title: '🟣 藍新 NewebPay 線上支付' },
+            ecpay_softpos: { label: '💙 綠界感應刷卡', title: '💙 綠界收款感應 App 刷卡' },
+            newebpay_softpos: { label: '🟣 藍新感應刷卡', title: '🟣 藍新金流收款 App 刷卡' }
         };
 
         const THIRD_PARTY_PAY_METHODS = ['linepay', 'jkopay', 'pxpay', 'ipass', 'twqr', 'easywallet', 'opay', 'ecpay', 'newebpay'];
@@ -2736,6 +2934,99 @@
             }
             showToast(`🚚 ${gatewayName}（${keyVal}）物流金鑰格式已驗證並可儲存！`);
         }
+
+        // ================= 💳 手機 NFC 感應刷卡（綠界 / 藍新 App 快捷呼叫） =================
+        let activeTapToPayOrder = null;
+
+        function copyPlainAmountText(amountVal) {
+            const ta = document.createElement('textarea');
+            ta.value = String(amountVal || 0);
+            document.body.appendChild(ta);
+            ta.select();
+            try { document.execCommand('copy'); } catch (e) {}
+            document.body.removeChild(ta);
+        }
+
+        window.openTapToPayModal = function(orderId) {
+            const list = window.getCloudOrders ? window.getCloudOrders() : [];
+            const order = list.find(o => o.id === orderId);
+            if (!order) { showToast('找不到該筆訂單資料'); return; }
+            activeTapToPayOrder = order;
+            const provider = document.getElementById('cfg-tap-to-pay-provider')?.value || window.storeProfileState?.tapToPayProvider || 'ecpay';
+            const badgeEl = document.getElementById('ttp-provider-badge');
+            const infoEl = document.getElementById('ttp-order-info');
+            const amtEl = document.getElementById('ttp-amount-display');
+            if (badgeEl) {
+                badgeEl.textContent = provider === 'newebpay' ? '🟣 藍新金流收款 App (SoftPOS)' : '💙 綠界收款感應 App (ECPay SoftPOS)';
+                badgeEl.className = provider === 'newebpay'
+                    ? 'inline-block px-3 py-0.5 rounded-full bg-indigo-700 text-white text-[11px] font-bold'
+                    : 'inline-block px-3 py-0.5 rounded-full bg-sky-700 text-white text-[11px] font-bold';
+            }
+            if (infoEl) infoEl.textContent = `訂單 #${order.orderNumber} · ${order.customerName || '現場貴賓'} (${order.diningType || '內用'})`;
+            if (amtEl) amtEl.textContent = `$${order.totalPrice || 0}`;
+            copyPlainAmountText(order.totalPrice || 0);
+            document.getElementById('tap-to-pay-modal')?.classList.remove('hidden');
+            showToast(`📋 已自動複製金額 $${order.totalPrice || 0}！`);
+        };
+
+        window.closeTapToPayModal = function() {
+            activeTapToPayOrder = null;
+            document.getElementById('tap-to-pay-modal')?.classList.add('hidden');
+        };
+
+        window.copyTapToPayAmount = function() {
+            if (!activeTapToPayOrder) return;
+            copyPlainAmountText(activeTapToPayOrder.totalPrice || 0);
+            showToast(`📋 已複製應收金額：${activeTapToPayOrder.totalPrice || 0}`);
+        };
+
+        window.launchTapToPayApp = function() {
+            if (!activeTapToPayOrder) return;
+            copyPlainAmountText(activeTapToPayOrder.totalPrice || 0);
+            const provider = document.getElementById('cfg-tap-to-pay-provider')?.value || window.storeProfileState?.tapToPayProvider || 'ecpay';
+            const customScheme = (document.getElementById('cfg-tap-to-pay-scheme')?.value || window.storeProfileState?.tapToPayCustomScheme || '').trim();
+            const isAndroid = /Android/i.test(navigator.userAgent);
+
+            if (customScheme) {
+                window.location.href = customScheme;
+                showToast('📲 正在喚起自訂刷卡 App...');
+                return;
+            }
+            if (isAndroid) {
+                const intentUri = provider === 'newebpay'
+                    ? 'intent://#Intent;package=com.newebpay.mpos;scheme=newebpaympos;end'
+                    : 'intent://#Intent;package=tw.com.ecpay.softpos;scheme=ecpaysoftpos;end';
+                window.location.href = intentUri;
+                showToast(`📲 正在喚起${provider === 'newebpay' ? '藍新收款' : '綠界收款感應'} App（金額已複製）`);
+            } else {
+                showToast(`📲 金額 $${activeTapToPayOrder.totalPrice || 0} 已複製！請切換到桌面開啟「${provider === 'newebpay' ? '藍新收款' : '綠界收款感應'}」App 貼上金額感應`);
+            }
+        };
+
+        window.confirmTapToPaySuccess = async function() {
+            if (!activeTapToPayOrder) { closeTapToPayModal(); return; }
+            if (activeTapToPayOrder.id === 'test-sample') { closeTapToPayModal(); return; }
+            const provider = document.getElementById('cfg-tap-to-pay-provider')?.value || window.storeProfileState?.tapToPayProvider || 'ecpay';
+            const paidMethodCode = provider === 'newebpay' ? 'newebpay_softpos' : 'ecpay_softpos';
+            const orderId = activeTapToPayOrder.id;
+            closeTapToPayModal();
+            await window.togglePaymentStatus(orderId, 'unpaid', paidMethodCode);
+            showToast('✅ 已標記為「感應刷卡已收款」');
+        };
+
+        window.testTapToPayQuickCall = function() {
+            activeTapToPayOrder = { id: 'test-sample', orderNumber: 'TEST', customerName: '測試感應刷卡', diningType: '櫃檯現場', totalPrice: 150 };
+            const provider = document.getElementById('cfg-tap-to-pay-provider')?.value || 'ecpay';
+            const badgeEl = document.getElementById('ttp-provider-badge');
+            const infoEl = document.getElementById('ttp-order-info');
+            const amtEl = document.getElementById('ttp-amount-display');
+            if (badgeEl) badgeEl.textContent = provider === 'newebpay' ? '🟣 藍新金流收款 App (SoftPOS)' : '💙 綠界收款感應 App (ECPay SoftPOS)';
+            if (infoEl) infoEl.textContent = '測試呼叫 · 模擬收款 $150';
+            if (amtEl) amtEl.textContent = '$150';
+            copyPlainAmountText(150);
+            document.getElementById('tap-to-pay-modal')?.classList.remove('hidden');
+            showToast('🧪 已開啟感應刷卡測試視窗（金額 150 已複製）');
+        };
 
         window.isStoreClosedToday = function() {
             const p = window.storeProfileState || {};
@@ -2862,6 +3153,9 @@
                 closedSpecificDates: Array.isArray(window.tempClosedSpecificDates) ? window.tempClosedSpecificDates.slice() : [],
                 forceClosedToday: !!document.getElementById('cfg-force-closed-today')?.checked,
                 ownerPasscodeHash: window.currentOwnerPasscodeHash || window.storeProfileState.ownerPasscodeHash || '',
+                tapToPayEnabled: !!document.getElementById('cfg-tap-to-pay-enabled')?.checked,
+                tapToPayProvider: document.getElementById('cfg-tap-to-pay-provider')?.value || 'ecpay',
+                tapToPayCustomScheme: document.getElementById('cfg-tap-to-pay-scheme')?.value.trim() || '',
                 autoPrintReceipt: !!document.getElementById('cfg-auto-print-receipt')?.checked,
                 printerMode: document.getElementById('cfg-printer-mode')?.value || 'bitmap',
                 printerPaper: document.getElementById('cfg-printer-paper')?.value || '80mm',
@@ -2969,6 +3263,9 @@
 
             const days = Array.isArray(p.closedWeekdays) ? p.closedWeekdays : [1];
             [0, 1, 2, 3, 4, 5, 6].forEach(d => setChk(`cfg-closed-day-${d}`, days.includes(d)));
+            setChk('cfg-tap-to-pay-enabled', p.tapToPayEnabled);
+            setVal('cfg-tap-to-pay-provider', p.tapToPayProvider || 'ecpay');
+            setVal('cfg-tap-to-pay-scheme', p.tapToPayCustomScheme || '');
             setChk('cfg-auto-print-receipt', p.autoPrintReceipt);
             setChk('cfg-device-cloud-relay', localStorage.getItem('xinyue_device_cloud_relay') === '1');
             setVal('cfg-printer-mode', normalizePrinterMode(p.printerMode));
@@ -3380,28 +3677,74 @@
             container.innerHTML = html || `<div class="rounded-3xl p-12 royal-frame-card text-center"><p class="font-serif text-xl font-bold text-wine-900">找不到符合「${searchKeyword}」的餐點</p></div>`;
         }
 
+        function getItemRemainingStock(itemName) {
+            const limits = window.itemStockLimits || {};
+            if (limits[itemName] !== undefined) return Number(limits[itemName]);
+            const baseName = (itemName || '').split(' (')[0].split(' + 豬排')[0];
+            if (limits[baseName] !== undefined) return Number(limits[baseName]);
+            return null;
+        }
+        window.getItemRemainingStock = getItemRemainingStock;
+
+        function getCartItemQty(exactName) {
+            const found = (window.cart || []).find(x => x.name === exactName);
+            return found ? Number(found.qty || 0) : 0;
+        }
+        window.getCartItemQty = getCartItemQty;
+
+        function getCartItemGroupQty(baseName) {
+            return (window.cart || []).reduce((sum, x) => {
+                const itemBase = (x.name || '').split(' (')[0].split(' + 豬排')[0];
+                return (x.name === baseName || itemBase === baseName) ? sum + Number(x.qty || 0) : sum;
+            }, 0);
+        }
+        window.getCartItemGroupQty = getCartItemGroupQty;
+
+        function adjustCartByName(exactName, delta) {
+            const idx = (window.cart || []).findIndex(x => x.name === exactName);
+            if (idx > -1) changeQty(idx, delta);
+        }
+        window.adjustCartByName = adjustCartByName;
+
         function renderMenuItemCard(category, item) {
-            const isSoldOut = !!(window.soldOutItems && window.soldOutItems[item.name]);
+            const remainStock = getItemRemainingStock(item.name);
+            const isSoldOut = !!(window.soldOutItems && window.soldOutItems[item.name]) || remainStock === 0;
             const fallbackImg = DEFAULT_CATEGORY_IMAGES[category.id] || DEFAULT_CATEGORY_IMAGES.burgers;
             const imgSrc = item.image || fallbackImg;
             const soldOutBadge = isSoldOut ? `<span class="text-[10px] px-2 py-0.5 rounded-full bg-rose-600 text-white font-bold">今日已售完</span>` : '';
+            const limitedStockBadge = (!isSoldOut && remainStock !== null)
+                ? `<span class="text-[10px] px-2 py-0.5 rounded-full bg-amber-100 text-amber-900 border border-amber-300 font-bold">限量剩 ${remainStock} 份</span>`
+                : '';
             const popularBadge = (!isSoldOut && item.popular) ? `<span class="text-[10px] px-2 py-0.5 rounded-full bg-wine-50 text-wine-800 border border-wine-200 font-medium">人氣推薦</span>` : '';
 
             if (category.type === 'standard') {
+                const qty = getCartItemQty(item.name);
+                const safeName = item.name.replace(/'/g, "\\'");
+                const cardCls = (!isSoldOut && qty > 0)
+                    ? 'bg-amber-50/90 border-2 border-wine-800 shadow-md ring-2 ring-gold-400/50'
+                    : (isSoldOut ? 'bg-stone-100/80 border border-stone-200 opacity-70' : 'bg-cream-50/70 hover:bg-wine-50/50 border border-cream-200');
                 return `
-                    <div class="flex items-center justify-between gap-3 p-3 rounded-2xl ${isSoldOut ? 'bg-stone-100/80 border-stone-200 opacity-70' : 'bg-cream-50/70 hover:bg-wine-50/50 border-cream-200'} border transition">
+                    <div class="relative flex items-center justify-between gap-3 p-3 rounded-2xl ${cardCls} transition">
+                        ${!isSoldOut && qty > 0 ? `<span class="absolute -top-2.5 -right-2 px-2.5 py-0.5 rounded-full bg-wine-800 text-gold-400 border-2 border-gold-400 font-black text-xs shadow-md z-10">已點 ${qty}</span>` : ''}
                         <img src="${imgSrc}" onerror="this.src='${fallbackImg}'" alt="${item.name}" class="w-14 h-14 rounded-xl object-cover border border-cream-300 shrink-0">
                         <div class="flex-1 min-w-0 space-y-1">
                             <div class="flex items-center gap-1.5 flex-wrap">
                                 <span class="font-medium text-sm sm:text-base truncate ${isSoldOut ? 'line-through text-stone-400' : 'text-stone-800'}">${item.name}</span>
                                 ${soldOutBadge}
+                                ${limitedStockBadge}
                                 ${popularBadge}
                             </div>
                             <span class="font-serif font-bold ${isSoldOut ? 'text-stone-400' : 'text-wine-800'} text-base block">$${item.price}</span>
                         </div>
                         ${isSoldOut
                             ? `<span class="px-2.5 py-1 rounded-full bg-stone-200 text-stone-500 text-xs font-bold shrink-0">售完</span>`
-                            : `<button onclick="addToCart('${item.name}', ${item.price})" class="w-9 h-9 rounded-full bg-white hover:bg-wine-800 text-wine-800 hover:text-cream-50 border border-wine-200 flex items-center justify-center transition shadow-2xs shrink-0">+</button>`}
+                            : (qty > 0
+                                ? `<div class="flex items-center gap-1.5 bg-white px-2 py-1 rounded-full border-2 border-wine-800 shadow-xs shrink-0">
+                                        <button type="button" onclick="adjustCartByName('${safeName}', -1)" class="w-7 h-7 rounded-full bg-cream-100 hover:bg-rose-100 text-wine-900 font-black text-sm flex items-center justify-center transition">-</button>
+                                        <span class="font-serif font-black text-wine-900 text-sm min-w-[1.25rem] text-center">${qty}</span>
+                                        <button type="button" onclick="addToCart('${safeName}', ${item.price})" class="w-7 h-7 rounded-full bg-wine-800 hover:bg-wine-900 text-cream-50 font-black text-sm flex items-center justify-center transition">+</button>
+                                   </div>`
+                                : `<button type="button" onclick="addToCart('${safeName}', ${item.price})" class="w-9 h-9 rounded-full bg-white hover:bg-wine-800 text-wine-800 hover:text-cream-50 border border-wine-200 flex items-center justify-center transition shadow-2xs shrink-0 font-bold text-lg">+</button>`)}
                     </div>
                 `;
             }
@@ -3413,7 +3756,7 @@
                             <img src="${imgSrc}" onerror="this.src='${fallbackImg}'" alt="${item.name}" class="w-12 h-12 rounded-xl object-cover border border-cream-300 shrink-0">
                             <div class="min-w-0 flex-1">
                                 <span class="font-medium text-sm block truncate ${isSoldOut ? 'line-through text-stone-400' : 'text-stone-800'}">${item.name}</span>
-                                <div class="mt-0.5">${soldOutBadge}${popularBadge}</div>
+                                <div class="mt-0.5 flex flex-wrap gap-1">${soldOutBadge}${limitedStockBadge}${popularBadge}</div>
                             </div>
                         </div>
                         ${isSoldOut ? `<div class="py-1.5 text-center rounded-xl bg-stone-200 text-stone-500 text-xs font-bold">今日已售完</div>` : `
@@ -3433,7 +3776,7 @@
                             <img src="${imgSrc}" onerror="this.src='${fallbackImg}'" alt="${item.name}" class="w-12 h-12 rounded-xl object-cover border border-cream-300 shrink-0">
                             <div class="min-w-0 flex-1">
                                 <span class="font-medium text-sm block truncate ${isSoldOut ? 'line-through text-stone-400' : 'text-stone-800'}">${item.name}</span>
-                                <div class="mt-0.5">${soldOutBadge}${popularBadge}</div>
+                                <div class="mt-0.5 flex flex-wrap gap-1">${soldOutBadge}${limitedStockBadge}${popularBadge}</div>
                             </div>
                         </div>
                         ${isSoldOut ? `<div class="py-1.5 text-center rounded-xl bg-stone-200 text-stone-500 text-xs font-bold">今日已售完</div>` : `
@@ -3469,7 +3812,7 @@
                             <img src="${imgSrc}" onerror="this.src='${fallbackImg}'" alt="${item.name}" class="w-12 h-12 rounded-xl object-cover border border-cream-300 shrink-0">
                             <div class="min-w-0 flex-1">
                                 <span class="font-medium text-sm block truncate ${isSoldOut ? 'line-through text-stone-400' : 'text-stone-800'}">${item.name}</span>
-                                <div class="mt-0.5">${soldOutBadge}${popularBadge}</div>
+                                <div class="mt-0.5 flex flex-wrap gap-1">${soldOutBadge}${limitedStockBadge}${popularBadge}</div>
                             </div>
                         </div>
                         ${isSoldOut ? `<div class="py-1.5 text-center rounded-xl bg-stone-200 text-stone-500 text-xs font-bold">今日已售完</div>` : `<div class="grid grid-cols-2 gap-1.5">${btns}</div>`}
@@ -3623,15 +3966,26 @@
         // ================= 購物車操作 =================
         function addToCart(name, price) {
             const baseItemName = name.split(' (')[0].split(' + 豬排')[0];
-            if (window.soldOutItems && (window.soldOutItems[name] || window.soldOutItems[baseItemName])) {
+            const remainStock = getItemRemainingStock(name);
+            if ((window.soldOutItems && (window.soldOutItems[name] || window.soldOutItems[baseItemName])) || remainStock === 0) {
                 showToast(`抱歉，「${baseItemName}」今日已售完囉！`);
                 return;
             }
             const idx = window.cart.findIndex(item => item.name === name);
-            if (idx > -1) window.cart[idx].qty += 1;
-            else window.cart.push({ name, price, qty: 1 });
+            const currentQtyInCart = idx > -1 ? window.cart[idx].qty : getCartItemGroupQty(baseItemName);
+            if (remainStock !== null && currentQtyInCart + 1 > remainStock) {
+                showToast(`抱歉，「${baseItemName}」今日限量僅剩 ${remainStock} 份！`);
+                return;
+            }
+            let nextQty = 1;
+            if (idx > -1) {
+                window.cart[idx].qty += 1;
+                nextQty = window.cart[idx].qty;
+            } else {
+                window.cart.push({ name, price, qty: 1 });
+            }
             updateCartUI();
-            showToast(`已加入「${name}」`);
+            showToast(`已加入「${name}」（目前共 ${nextQty} 份）`);
         }
 
         function changeQty(index, delta) {
@@ -3763,6 +4117,35 @@
             if (mobileCountEl) mobileCountEl.textContent = totalQty;
             if (mobileTotalEl) mobileTotalEl.textContent = `$${totalPrice}`;
             if (cartTotalEl) cartTotalEl.textContent = `$${totalPrice}`;
+
+            // 同步桌面右側常駐即時點餐明細
+            const inlineBadge = document.getElementById('inline-cart-badge');
+            const inlineTotal = document.getElementById('inline-cart-total');
+            const inlineContainer = document.getElementById('inline-cart-items');
+            if (inlineBadge) inlineBadge.textContent = `${totalQty} 份`;
+            if (inlineTotal) inlineTotal.textContent = `$${subtotalPrice}`;
+            if (inlineContainer) {
+                if (window.cart.length === 0) {
+                    inlineContainer.innerHTML = `<div class="text-center text-stone-400 py-10"><p class="font-serif text-base text-stone-500">尚未點選任何餐點</p><p class="text-xs mt-1">點擊左側「+」即可加入</p></div>`;
+                } else {
+                    inlineContainer.innerHTML = window.cart.map((item, idx) => `
+                        <div class="flex items-center justify-between gap-2 p-2.5 rounded-2xl bg-cream-50 border border-cream-200">
+                            <div class="min-w-0 flex-1">
+                                <h4 class="font-bold text-wine-950 text-xs sm:text-sm truncate">${item.name}</h4>
+                                <span class="font-serif text-wine-800 font-bold text-xs">$${item.price * item.qty}</span>
+                            </div>
+                            <div class="flex items-center gap-1.5 bg-white px-2 py-0.5 rounded-full border border-cream-300 shrink-0">
+                                <button type="button" onclick="changeQty(${idx}, -1)" class="w-6 h-6 rounded-full bg-cream-100 hover:bg-rose-100 text-wine-900 font-black text-xs flex items-center justify-center">-</button>
+                                <span class="text-xs font-black w-4 text-center">${item.qty}</span>
+                                <button type="button" onclick="changeQty(${idx}, 1)" class="w-6 h-6 rounded-full bg-wine-800 text-cream-50 font-black text-xs flex items-center justify-center">+</button>
+                            </div>
+                        </div>
+                    `).join('');
+                }
+            }
+
+            // 即時刷新菜單卡片的「已點 N」徽章
+            try { renderMenu(document.getElementById('menu-search')?.value.trim() || ''); } catch (e) {}
 
             const mobileBar = document.getElementById('mobile-cart-bar');
             if (mobileBar) {
@@ -3988,7 +4371,15 @@
             updatePasscodeRoleUi();
             updateTableQrPreview();
             captureOwnerSavedSnapshot();
-            if (window.getCloudOrders) window.renderOwnerOrders(window.getCloudOrders());
+            if (window.getCloudOrders) {
+                const orders = window.getCloudOrders();
+                const hasActive = orders.some(o => o.status === 'pending' || o.status === 'preparing');
+                if (!hasActive && orders.length > 0 && ownerFilter === 'active') {
+                    setOwnerFilter('all');
+                } else {
+                    window.renderOwnerOrders(orders);
+                }
+            }
         }
 
         function handleExitOwnerModeClick() {
@@ -4256,7 +4647,14 @@
         window.renderOwnerOrders = function(rawOrders) {
             updateOwnerOrientationUi();
             updateKitchenLargeModeUi();
-            const orders = filterOrdersByDateTime(rawOrders, 'orders-date-start', 'orders-date-end', 'orders-time-start', 'orders-time-end');
+            const seenIds = new Set();
+            const dedupedRaw = (rawOrders || []).filter(o => {
+                if (!o || !o.id) return true;
+                if (seenIds.has(o.id)) return false;
+                seenIds.add(o.id);
+                return true;
+            });
+            const orders = filterOrdersByDateTime(dedupedRaw, 'orders-date-start', 'orders-date-end', 'orders-time-start', 'orders-time-end');
             renderKitchenBatchSummary(orders);
             const validOrders = orders.filter(o => o.status !== 'cancelled');
             document.getElementById('stat-pending').textContent = orders.filter(o => o.status === 'pending').length;
@@ -4287,7 +4685,11 @@
             const grid = document.getElementById('owner-orders-grid');
             if (!grid) return;
             if (filtered.length === 0) {
-                grid.innerHTML = `<div class="col-span-full text-center py-16 rounded-3xl bg-wine-900/40 border border-gold-400/20"><p class="font-serif text-lg text-cream-200/80">目前篩選條件下沒有訂單紀錄</p></div>`;
+                const totalCount = orders.length;
+                grid.innerHTML = `<div class="col-span-full text-center py-14 px-4 rounded-3xl bg-wine-900/40 border border-gold-400/20 space-y-3">
+                    <p class="font-serif text-lg text-cream-200/85">目前篩選條件下沒有訂單紀錄</p>
+                    ${totalCount > 0 && ownerFilter !== 'all' ? `<button type="button" onclick="setOwnerFilter('all')" class="px-5 py-2.5 rounded-full bg-gold-500 hover:bg-gold-400 text-wine-950 text-xs font-black shadow-md transition">檢視全部 ${totalCount} 筆歷史訂單 →</button>` : ''}
+                </div>`;
                 return;
             }
 
@@ -4327,7 +4729,10 @@
                                         ? (order.paymentMethod === 'platform_paid' ? '💰 已付款（外送平台）' : (THIRD_PARTY_PAY_METHODS.includes(order.paymentMethod) ? `💰 ${PAYMENT_METHOD_META[order.paymentMethod].label} 已收款` : '💰 已付款'))
                                         : (order.paymentMethod === 'transfer' ? `⚠️ 未付款（後五碼:${order.transferLast5}）` : (THIRD_PARTY_PAY_METHODS.includes(order.paymentMethod) ? `⏳ 待確認入帳（${PAYMENT_METHOD_META[order.paymentMethod].label}）` : '⚠️ 未付款｜到店收款'))}
                                 </span>
-                                ${!isCancelled && order.paymentMethod !== 'platform_paid' ? `<button onclick="window.togglePaymentStatus('${order.id}', '${order.paymentStatus || 'unpaid'}')" class="px-3 py-1.5 rounded-xl ${isPaid ? 'bg-white/20 hover:bg-white/30 text-white' : 'bg-wine-900 hover:bg-wine-950 text-cream-50'} ${isKitchenLargeMode ? 'text-sm' : 'text-xs'} font-black shrink-0 transition">${isPaid ? '改回未付' : '✓ 確認收款'}</button>` : ''}
+                                <div class="flex items-center gap-1.5 shrink-0">
+                                    ${!isPaid && !isCancelled && window.storeProfileState?.tapToPayEnabled ? `<button type="button" onclick="window.openTapToPayModal('${order.id}')" class="px-2.5 py-1.5 rounded-xl bg-sky-700 hover:bg-sky-800 text-white ${isKitchenLargeMode ? 'text-sm' : 'text-xs'} font-black shadow-xs transition">💳 感應刷卡</button>` : ''}
+                                    ${!isCancelled && order.paymentMethod !== 'platform_paid' ? `<button onclick="window.togglePaymentStatus('${order.id}', '${order.paymentStatus || 'unpaid'}')" class="px-3 py-1.5 rounded-xl ${isPaid ? 'bg-white/20 hover:bg-white/30 text-white' : 'bg-wine-900 hover:bg-wine-950 text-cream-50'} ${isKitchenLargeMode ? 'text-sm' : 'text-xs'} font-black shrink-0 transition">${isPaid ? '改回未付' : '✓ 確認收款'}</button>` : ''}
+                                </div>
                             </div>
                             <div class="bg-cream-100 rounded-xl p-3 mb-3 ${isKitchenLargeMode ? 'text-base' : 'text-xs'} space-y-1.5 border border-cream-200">
                                 <div class="flex justify-between items-center"><span>取餐人：</span><strong class="${isKitchenLargeMode ? 'text-base' : ''}">${order.customerName} (${order.diningType}${order.tableNumber ? ' ' + order.tableNumber : ''})</strong></div>
@@ -4394,7 +4799,8 @@
                         </div>
                         <div class="divide-y divide-cream-200 max-h-80 overflow-y-auto pr-1">
                             ${matched.map(({ it, itemIdx }) => {
-                                const isSoldOut = !!(window.soldOutItems && window.soldOutItems[it.name]);
+                                const stockVal = (window.itemStockLimits && window.itemStockLimits[it.name] !== undefined) ? window.itemStockLimits[it.name] : '';
+                                const isSoldOut = !!(window.soldOutItems && window.soldOutItems[it.name]) || Number(stockVal) === 0;
                                 const priceDisplay = it.price || it.basePrice || (it.prices ? `${it.prices[0]}/${it.prices[1]}` : `${it.small}/${it.large}`);
                                 return `
                                     <div class="py-2.5 flex items-center justify-between gap-2">
@@ -4405,7 +4811,11 @@
                                                 <span class="text-xs font-serif font-bold text-wine-800">$${priceDisplay}</span>
                                             </div>
                                         </div>
-                                        <div class="flex items-center gap-1.5 shrink-0">
+                                        <div class="flex items-center gap-1.5 shrink-0 flex-wrap justify-end">
+                                            <div class="flex items-center gap-1 bg-cream-100 px-2 py-1 rounded-lg border border-cream-300" title="留空 = 無限量；填數字後客人下單會自動倒數扣庫存">
+                                                <span class="text-[10px] text-stone-500 font-bold">庫存</span>
+                                                <input type="number" min="0" value="${(window.itemStockLimits && window.itemStockLimits[it.name] !== undefined) ? window.itemStockLimits[it.name] : ''}" placeholder="無限" onchange="window.setItemStockLimit('${it.name.replace(/'/g, "\\'")}', this.value)" class="w-12 px-1 py-0.5 rounded bg-white border border-cream-300 text-center font-mono text-xs font-bold text-wine-950 focus:outline-none focus:border-wine-800">
+                                            </div>
                                             <button onclick="openMenuItemEditorModal(${catIdx}, ${itemIdx})" class="px-2 py-1 rounded-lg bg-cream-100 hover:bg-cream-200 text-stone-700 text-xs">編輯</button>
                                             <button onclick="deleteMenuItemFromCategory(${catIdx}, ${itemIdx})" class="px-2 py-1 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-700 text-xs">刪</button>
                                             <button onclick="window.toggleItemSoldOut('${it.name}')" class="px-2.5 py-1 rounded-full text-[11px] font-bold ${isSoldOut ? 'bg-rose-600 text-white' : 'bg-emerald-100 text-emerald-800'}">
@@ -4668,12 +5078,33 @@
             }
 
             if (activeReportType === 'inventory') {
+                const soldCountMap = {};
+                validOrders.forEach(o => (o.items || []).forEach(i => {
+                    const base = (i.name || '').split(' (')[0].split(' + 豬排')[0];
+                    soldCountMap[i.name] = (soldCountMap[i.name] || 0) + Number(i.qty || 1);
+                    if (base !== i.name) soldCountMap[base] = (soldCountMap[base] || 0) + Number(i.qty || 1);
+                }));
                 const rows = [];
                 menuData.forEach(cat => cat.items.forEach(it => {
-                    const soldOut = !!(window.soldOutItems && window.soldOutItems[it.name]);
-                    rows.push([cat.title, it.name, soldOut ? '今日已售完 (0)' : '正常供應中', `$${it.price || it.basePrice || 0}`]);
+                    const limitVal = (window.itemStockLimits && window.itemStockLimits[it.name] !== undefined)
+                        ? Number(window.itemStockLimits[it.name])
+                        : null;
+                    const soldOut = !!(window.soldOutItems && window.soldOutItems[it.name]) || limitVal === 0;
+                    const soldQty = soldCountMap[it.name] || 0;
+                    const remainDisplay = soldOut ? '0 份 (已售完)' : (limitVal !== null ? `${limitVal} 份` : '無限量');
+                    const statusLabel = soldOut
+                        ? '🔴 今日已售完'
+                        : (limitVal !== null && limitVal <= 5 ? `🟠 低庫存警示 (剩 ${limitVal} 份)` : '🟢 正常供應中');
+                    rows.push([
+                        cat.title,
+                        it.name,
+                        remainDisplay,
+                        `${soldQty} 份`,
+                        statusLabel,
+                        `$${it.price || it.basePrice || (it.prices ? it.prices[0] : (it.small || 0))}`
+                    ]);
                 }));
-                return { title: '庫存與供應狀態報表', headers: ['類別', '商品名稱', '目前供應狀態', '單價'], rows };
+                return { title: '庫存與供應狀態報表', headers: ['類別', '商品名稱', '剩餘可售庫存', '區間已售數量', '目前供應狀態', '單價'], rows };
             }
 
             if (activeReportType === 'txSummary') {
