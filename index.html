@@ -980,7 +980,7 @@
                 </div>
 
                 <div class="pt-8 flex flex-col sm:flex-row items-center justify-between text-xs text-cream-200/50 gap-4">
-                    <p>© 2026 <span id="copyright-store-name">昕悅早午餐 Xin Yue Brunch</span>. All Rights Reserved. <span class="ml-1.5 px-2 py-0.5 rounded bg-wine-900 text-gold-400/80 font-mono text-[10px]">v3.4.3</span></p>
+                    <p>© 2026 <span id="copyright-store-name">昕悅早午餐 Xin Yue Brunch</span>. All Rights Reserved. <span class="ml-1.5 px-2 py-0.5 rounded bg-wine-900 text-gold-400/80 font-mono text-[10px]">v3.4.4</span></p>
                     <div class="flex items-center gap-4">
                         <span class="tracking-widest text-gold-400/70">FRESH / BRUNCH / GOOD MOOD ♡</span>
                         <button onclick="openOwnerLoginModal()" class="px-3 py-1 rounded-full bg-wine-900/80 hover:bg-wine-800 text-cream-200/70 hover:text-gold-400 border border-wine-700/60 transition flex items-center gap-1">
@@ -2753,6 +2753,9 @@
             document.title = `${titleName}${titleEn ? ' ' + titleEn : ''} | 新鮮食材．用心製作`;
             const homeScreenTitle = document.querySelector('meta[name="apple-mobile-web-app-title"]');
             if (homeScreenTitle) homeScreenTitle.setAttribute('content', `${titleName} 接單`);
+
+            // 安裝到手機的 App 名稱／圖示也一起跟隨店名
+            if (window.refreshPwaManifest) window.refreshPwaManifest();
 
             ['card-store-hours', 'footer-store-hours'].forEach(id => { const el = document.getElementById(id); if (el) el.textContent = p.hours; });
             ['card-closed-days-text', 'footer-closed-days-text'].forEach(id => { const el = document.getElementById(id); if (el) el.textContent = p.closedDaysText || '每週一公休'; });
@@ -5314,30 +5317,56 @@
             deferredPwaPrompt = e;
         });
 
+        // 依目前店名重新產生 PWA manifest（安裝到手機的 App 名稱與圖示會跟著後台店名走）
+        window.refreshPwaManifest = function() {
+            try {
+                const manifestLink = document.getElementById('pwa-manifest-link');
+                if (!manifestLink) return;
+                const p = window.storeProfileState || {};
+                const storeName = (p.storeName || '昕悅早午餐').trim();
+                const baseUrl = window.location.href.split('?')[0];
+                const logoChar = storeName.charAt(0) || '昕';
+
+                const svgRaw = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><rect width="512" height="512" rx="110" fill="#540e15"/><rect x="28" y="28" width="456" height="456" rx="88" fill="none" stroke="#d4af37" stroke-width="12"/><text x="256" y="320" font-size="220" font-family="sans-serif" font-weight="bold" fill="#fcfaf7" text-anchor="middle">${logoChar}</text></svg>`;
+                const iconSvg = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svgRaw)}`;
+
+                const manifestObj = {
+                    name: `${storeName} 接單管理`,
+                    short_name: storeName.slice(0, 8) || '接單',
+                    start_url: `${baseUrl}?mode=owner`,
+                    scope: './',
+                    display: 'standalone',
+                    orientation: 'any',
+                    background_color: '#1f0508',
+                    theme_color: '#33060a',
+                    lang: 'zh-TW',
+                    description: `${storeName} 線上點餐與接單管理系統`,
+                    icons: [
+                        { src: iconSvg, sizes: '192x192', type: 'image/svg+xml' },
+                        { src: iconSvg, sizes: '512x512', type: 'image/svg+xml' }
+                    ]
+                };
+                const blob = new Blob([new TextEncoder().encode(JSON.stringify(manifestObj))], { type: 'application/manifest+json;charset=utf-8' });
+                if (manifestLink.dataset.blobUrl) {
+                    try { URL.revokeObjectURL(manifestLink.dataset.blobUrl); } catch (e) {}
+                }
+                const objUrl = URL.createObjectURL(blob);
+                manifestLink.dataset.blobUrl = objUrl;
+                manifestLink.href = objUrl;
+
+                //  iOS 加入主畫面的圖示也跟著店名首字走
+                const appleIcon = document.querySelector('link[rel="apple-touch-icon"]');
+                if (appleIcon && /^data:image\/svg/i.test(appleIcon.getAttribute('href') || '')) {
+                    appleIcon.setAttribute('href', iconSvg);
+                }
+            } catch (e) {}
+        };
+
         function initPwaAppSupport() {
             if ('serviceWorker' in navigator) {
                 navigator.serviceWorker.register('sw.js').catch(() => {});
             }
-            try {
-                const baseUrl = window.location.href.split('?')[0];
-                const logoChar = (window.storeProfileState?.storeName || '昕').charAt(0);
-                const svgRaw = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><rect width="512" height="512" rx="110" fill="#540e15"/><rect x="28" y="28" width="456" height="456" rx="88" fill="none" stroke="#d4af37" stroke-width="12"/><text x="256" y="320" font-size="220" font-family="sans-serif" font-weight="bold" fill="#fcfaf7" text-anchor="middle">${logoChar}</text></svg>`;
-                const iconSvg = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svgRaw)}`;
-                const manifestObj = {
-                    name: `${window.storeProfileState?.storeName || '昕悅早午餐'} - 接單管理 App`,
-                    short_name: (window.storeProfileState?.storeName || '昕悅接單').slice(0, 8),
-                    start_url: `${baseUrl}?mode=owner`,
-                    scope: './',
-                    display: 'standalone',
-                    background_color: '#1f0508',
-                    theme_color: '#33060a',
-                    lang: 'zh-TW',
-                    icons: [{ src: iconSvg, sizes: '512x512', type: 'image/svg+xml' }]
-                };
-                const blob = new Blob([new TextEncoder().encode(JSON.stringify(manifestObj))], { type: 'application/manifest+json;charset=utf-8' });
-                const manifestLink = document.getElementById('pwa-manifest-link');
-                if (manifestLink) manifestLink.href = URL.createObjectURL(blob);
-            } catch (e) {}
+            window.refreshPwaManifest();
             const params = new URLSearchParams(window.location.search);
             if (params.get('mode') === 'owner') {
                 setTimeout(() => {
