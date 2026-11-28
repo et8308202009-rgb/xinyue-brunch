@@ -3613,9 +3613,10 @@
         }
 
         function getMenuItemsGridClass() {
+            // 菜單區現在是左 8 欄（右側 4 欄為即時點餐車），每列最多 2 張卡才不會擠壓
             if (menuOrientationLayout === 'portrait') return 'grid grid-cols-1 max-w-2xl mx-auto gap-4';
-            if (menuOrientationLayout === 'landscape') return 'grid grid-cols-2 lg:grid-cols-3 gap-3.5 sm:gap-4';
-            return 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5 sm:gap-4';
+            if (menuOrientationLayout === 'landscape') return 'grid grid-cols-2 gap-3.5 sm:gap-4';
+            return 'grid grid-cols-1 sm:grid-cols-2 gap-3.5 sm:gap-4';
         }
 
         function updateMenuOrientationUi() {
